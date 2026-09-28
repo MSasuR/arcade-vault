@@ -1,24 +1,14 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { GAMES } from "../data";
-
-interface User {
-  name: string;
-}
+import { useUser } from "./useUser";
 
 export default function GamePlayer({ id }: { id: string }) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useUser();
   const game = useMemo(() => GAMES.find((g) => g.id === id), [id]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("av_user");
-      if (stored) setUser(JSON.parse(stored));
-    } catch (e) {}
-  }, []);
 
   if (!game) return null;
 
@@ -33,7 +23,7 @@ export default function GamePlayer({ id }: { id: string }) {
           at: Date.now(),
         });
         localStorage.setItem("av_scores", JSON.stringify(all));
-      } catch (e) {}
+      } catch {}
     }
     router.push(`/games/${game.id}`);
   };
@@ -84,10 +74,7 @@ export default function GamePlayer({ id }: { id: string }) {
       </div>
 
       <div style={{ textAlign: "center", marginTop: 32 }}>
-        <button
-          className="btn lg"
-          onClick={() => router.push(`/games/${game.id}`)}
-        >
+        <button className="btn lg" onClick={() => router.push(`/games/${game.id}`)}>
           VOLVER A DETALLES
         </button>
       </div>
