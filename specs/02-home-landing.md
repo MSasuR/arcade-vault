@@ -1,6 +1,6 @@
 # Home Landing Page
 
-**State:** Approved  
+**State:** Implementado  
 **Depends on:** SPEC 01 (Arcade Vault MVP)  
 **Date:** 2026-09-28  
 **Objective:** Implementar la página home como landing page principal con hero, features, preview de juegos, actividad en vivo, pricing y CTA, reemplazando la Biblioteca actual como pantalla inicial.
