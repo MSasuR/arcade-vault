@@ -1,30 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Nav from "./Nav";
-
-interface User {
-  name: string;
-}
+import { useUser } from "./useUser";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const { user, loading, signOut } = useUser();
 
   useEffect(() => {
-    setMounted(true);
     try {
-      const stored = localStorage.getItem("av_user");
-      if (stored) setUser(JSON.parse(stored));
-    } catch (e) {}
+      // Clave legacy de la auth falsa (SPEC 01), reemplazada por Supabase Auth.
+      localStorage.removeItem("av_user");
+    } catch {}
   }, []);
 
   const handleSignOut = () => {
-    setUser(null);
-    localStorage.removeItem("av_user");
+    signOut();
   };
 
-  if (!mounted) return null;
+  if (loading) return null;
 
   return (
     <>

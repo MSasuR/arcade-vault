@@ -2,22 +2,108 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-interface User {
-  name: string;
-}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_RE = /^[A-Za-z0-9_]{3,10}$/;
 
 export default function Auth() {
   const router = useRouter();
+  const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const changeTab = (next: "in" | "up") => {
+    setTab(next);
+    setError("");
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userData = { name: (user || "PLAYER1").toUpperCase().slice(0, 10) };
-    localStorage.setItem("av_user", JSON.stringify(userData));
+    if (loading) return;
+    setError("");
+
+    const username = user.trim().toUpperCase();
+    if (tab === "up" && !USERNAME_RE.test(username)) {
+      setError("USUARIO: 3 A 10 CARACTERES (LETRAS, NÚMEROS O _)");
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setError("EL CORREO NO ES VÁLIDO");
+      return;
+    }
+    if (pass.length < 6) {
+      setError("LA CONTRASEÑA DEBE TENER AL MENOS 6 CARACTERES");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (tab === "in") {
+        const { error: err } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: pass,
+        });
+        if (err) {
+          setError(
+            err.code === "invalid_credentials"
+              ? "CORREO O CONTRASEÑA INCORRECTOS"
+              : "ERROR DE CONEXIÓN. INTENTA DE NUEVO",
+          );
+          return;
+        }
+        router.push("/games");
+        return;
+      }
+
+      const { data: taken } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+      if (taken) {
+        setError("ESE USUARIO YA EXISTE");
+        return;
+      }
+
+      const { data, error: err } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: pass,
+        options: { data: { username } },
+      });
+      if (err) {
+        if (err.code === "user_already_exists") {
+          setError("ESE CORREO YA ESTÁ REGISTRADO");
+        } else if (err.code === "email_address_invalid") {
+          setError("EL CORREO NO ES VÁLIDO");
+        } else if (err.code === "over_email_send_rate_limit") {
+          setError("DEMASIADOS INTENTOS. ESPERA UN MOMENTO");
+        } else if (/database error/i.test(err.message)) {
+          // El trigger falló por la restricción unique de username (carrera).
+          setError("ESE USUARIO YA EXISTE");
+        } else {
+          setError("ERROR DE CONEXIÓN. INTENTA DE NUEVO");
+        }
+        return;
+      }
+      if (data.session) {
+        router.push("/games");
+      } else {
+        setError("REVISA TU CORREO PARA CONFIRMAR LA CUENTA");
+      }
+    } catch {
+      setError("ERROR DE CONEXIÓN. INTENTA DE NUEVO");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const guest = async () => {
+    await supabase.auth.signOut();
     router.push("/games");
   };
 
@@ -41,40 +127,37 @@ export default function Auth() {
         </div>
 
         <div className="auth-tabs">
-          <button
-            className={tab === "in" ? "on" : ""}
-            onClick={() => setTab("in")}
-          >
+          <button className={tab === "in" ? "on" : ""} onClick={() => changeTab("in")}>
             INICIAR SESIÓN
           </button>
-          <button
-            className={tab === "up" ? "on" : ""}
-            onClick={() => setTab("up")}
-          >
+          <button className={tab === "up" ? "on" : ""} onClick={() => changeTab("up")}>
             CREAR CUENTA
           </button>
         </div>
 
-        <form onSubmit={submit}>
-          <div className="field">
-            <label>Usuario</label>
-            <input
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-              placeholder="px_kai"
-            />
-          </div>
+        <form onSubmit={submit} noValidate>
           {tab === "up" && (
             <div className="field slide-in">
-              <label>Correo electrónico</label>
+              <label>Usuario</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jugador@vault.gg"
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+                placeholder="px_kai"
+                maxLength={10}
+                autoComplete="username"
               />
             </div>
           )}
+          <div className="field">
+            <label>Correo electrónico</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="jugador@vault.gg"
+              autoComplete="email"
+            />
+          </div>
           <div className="field">
             <label>Contraseña</label>
             <input
@@ -85,23 +168,19 @@ export default function Auth() {
             />
           </div>
 
+          {error && <div className="contact-error">{error}</div>}
+
           <button
             className="btn lg"
             type="submit"
+            disabled={loading}
             style={{ width: "100%", marginTop: 8 }}
           >
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
+            {loading ? "CONECTANDO..." : tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
           </button>
         </form>
 
-        <button
-          className="btn ghost"
-          style={{ width: "100%", marginTop: 10 }}
-          onClick={() => {
-            localStorage.removeItem("av_user");
-            router.push("/games");
-          }}
-        >
+        <button className="btn ghost" style={{ width: "100%", marginTop: 10 }} onClick={guest}>
           JUGAR COMO INVITADO
         </button>
 

@@ -1,23 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { GAMES, seededScores } from "../data";
-
-interface User {
-  name: string;
-}
+import { useUser } from "./useUser";
 
 export default function HallOfFame() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("av_user");
-      if (stored) setUser(JSON.parse(stored));
-    } catch (e) {}
-  }, []);
+  const { user } = useUser();
   const [tab, setTab] = useState(GAMES[0].id);
   const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
   const game = GAMES.find((g) => g.id === tab);
@@ -28,10 +18,7 @@ export default function HallOfFame() {
     <div className="av-hall fade-in">
       <div className="hall-head">
         <h1>SALÓN DE LA FAMA</h1>
-        <p
-          className="pixel"
-          style={{ fontSize: 10 }}
-        >
+        <p className="pixel" style={{ fontSize: 10 }}>
           LOS NOMBRES QUE NUNCA SE BORRAN DE LA PANTALLA
         </p>
       </div>
@@ -93,10 +80,7 @@ export default function HallOfFame() {
         {rows.map((r, i) => (
           <div
             key={r.name + i}
-            className={
-              "tr" +
-              (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
-            }
+            className={"tr" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
             style={{ animationDelay: `${i * 50}ms` }}
           >
             <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
@@ -107,13 +91,8 @@ export default function HallOfFame() {
         ))}
         {user && (
           <React.Fragment>
-            <div className="tr you-label">
-              ▸ TU MEJOR MARCA EN {game?.title}
-            </div>
-            <div
-              className="tr you"
-              style={{ animationDelay: `${rows.length * 50 + 50}ms` }}
-            >
+            <div className="tr you-label">▸ TU MEJOR MARCA EN {game?.title}</div>
+            <div className="tr you" style={{ animationDelay: `${rows.length * 50 + 50}ms` }}>
               <div className="rk" style={{ color: "var(--yellow)" }}>
                 #{String(youRank).padStart(2, "0")}
               </div>
@@ -136,10 +115,7 @@ export default function HallOfFame() {
       </div>
 
       <div style={{ textAlign: "center", marginTop: 32 }}>
-        <button
-          className="btn lg"
-          onClick={() => router.push("/games")}
-        >
+        <button className="btn lg" onClick={() => router.push("/games")}>
           VOLVER A LA BIBLIOTECA
         </button>
       </div>

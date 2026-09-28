@@ -10,7 +10,7 @@ export default function GamesPreviewSection() {
   return (
     <section className="home-section reveal">
       <div className="section-head">
-        <div className="kicker pixel neon-cyan">// 02</div>
+        <div className="kicker pixel neon-cyan">{"// 02"}</div>
         <h2 className="section-title">JUEGOS DISPONIBLES AHORA</h2>
         <div className="section-rule"></div>
       </div>
