@@ -1,16 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { GAMES, CATS } from "../data";
-
-interface Route {
-  name: string;
-  id?: string;
-}
-
-interface LibraryProps {
-  navigate: (r: Route) => void;
-}
 
 interface GameWithRef {
   id: string;
@@ -91,7 +83,8 @@ function GameCard({
   );
 }
 
-export default function Library({ navigate }: LibraryProps) {
+export default function Library() {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("TODOS");
 
@@ -139,7 +132,7 @@ export default function Library({ navigate }: LibraryProps) {
           <GameCard
             key={g.id}
             game={g}
-            onSelect={(game) => navigate({ name: "detalle", id: game.id })}
+            onSelect={(game) => router.push(`/games/${game.id}`)}
           />
         ))}
         {filtered.length === 0 && (

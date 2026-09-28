@@ -1,43 +1,41 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { GAMES } from "../data";
 
 interface User {
   name: string;
 }
 
-interface Route {
-  name: string;
-  id?: string;
-}
-
-interface GamePlayerProps {
-  id: string;
-  user: User | null;
-  navigate: (r: Route) => void;
-  onSaveScore: (entry: any) => void;
-}
-
-export default function GamePlayer({
-  id,
-  user,
-  navigate,
-  onSaveScore,
-}: GamePlayerProps) {
+export default function GamePlayer({ id }: { id: string }) {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
   const game = useMemo(() => GAMES.find((g) => g.id === id), [id]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("av_user");
+      if (stored) setUser(JSON.parse(stored));
+    } catch (e) {}
+  }, []);
 
   if (!game) return null;
 
   const handleEndGame = () => {
     if (user) {
-      onSaveScore({
-        gameId: game.id,
-        playerName: user.name,
-        score: 0,
-      });
+      try {
+        const all = JSON.parse(localStorage.getItem("av_scores") || "[]");
+        all.push({
+          gameId: game.id,
+          playerName: user.name,
+          score: 0,
+          at: Date.now(),
+        });
+        localStorage.setItem("av_scores", JSON.stringify(all));
+      } catch (e) {}
     }
-    navigate({ name: "detalle", id: game.id });
+    router.push(`/games/${game.id}`);
   };
 
   return (
@@ -88,7 +86,7 @@ export default function GamePlayer({
       <div style={{ textAlign: "center", marginTop: 32 }}>
         <button
           className="btn lg"
-          onClick={() => navigate({ name: "detalle", id: game.id })}
+          onClick={() => router.push(`/games/${game.id}`)}
         >
           VOLVER A DETALLES
         </button>

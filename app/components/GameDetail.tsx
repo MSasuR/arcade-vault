@@ -1,19 +1,11 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { GAMES, seededScores } from "../data";
 
-interface Route {
-  name: string;
-  id?: string;
-}
-
-interface GameDetailProps {
-  id: string;
-  navigate: (r: Route) => void;
-}
-
-export default function GameDetail({ id, navigate }: GameDetailProps) {
+export default function GameDetail({ id }: { id: string }) {
+  const router = useRouter();
   const game = useMemo(() => GAMES.find((g) => g.id === id), [id]);
   const scores = useMemo(
     () => seededScores(id.length * 17 + 3, 10),
@@ -70,13 +62,13 @@ export default function GameDetail({ id, navigate }: GameDetailProps) {
           <div className="detail-actions">
             <button
               className="btn xl pulse"
-              onClick={() => navigate({ name: "player", id: game.id })}
+              onClick={() => router.push(`/player/${game.id}`)}
             >
               ▶ JUGAR AHORA
             </button>
             <button
               className="btn ghost lg"
-              onClick={() => navigate({ name: "biblioteca" })}
+              onClick={() => router.push('/games')}
             >
               VOLVER AL VAULT
             </button>
