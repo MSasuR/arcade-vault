@@ -49,6 +49,12 @@ export default function Nav({
           >
             Salón de la Fama
           </a>
+          <a
+            className={isActive("/about") ? "active" : ""}
+            onClick={() => go("/about")}
+          >
+            ABOUT
+          </a>
         </div>
         <div className="spacer"></div>
         <div className="coin-counter">
@@ -101,6 +107,12 @@ export default function Nav({
           onClick={() => go("/salon")}
         >
           Salón de la Fama
+        </a>
+        <a
+          className={isActive("/about") ? "active" : ""}
+          onClick={() => go("/about")}
+        >
+          ABOUT
         </a>
         <a
           className={isActive("/auth") ? "active" : ""}
