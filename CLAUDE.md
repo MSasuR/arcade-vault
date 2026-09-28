@@ -12,6 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run lint` — ESLint (flat config: `eslint-config-next` core-web-vitals + typescript rules)
 
 No test framework is configured (no test script, no test files).
+## Skills
+Usa siempre /fronend-design para diseñar la interfaz de usuario
+
 
 ## Architecture
 
