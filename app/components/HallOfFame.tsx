@@ -1,23 +1,23 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { GAMES, seededScores } from "../data";
 
 interface User {
   name: string;
 }
 
-interface Route {
-  name: string;
-  id?: string;
-}
+export default function HallOfFame() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
-interface HallOfFameProps {
-  user: User | null;
-  navigate: (r: Route) => void;
-}
-
-export default function HallOfFame({ user, navigate }: HallOfFameProps) {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("av_user");
+      if (stored) setUser(JSON.parse(stored));
+    } catch (e) {}
+  }, []);
   const [tab, setTab] = useState(GAMES[0].id);
   const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
   const game = GAMES.find((g) => g.id === tab);
@@ -138,7 +138,7 @@ export default function HallOfFame({ user, navigate }: HallOfFameProps) {
       <div style={{ textAlign: "center", marginTop: 32 }}>
         <button
           className="btn lg"
-          onClick={() => navigate({ name: "biblioteca" })}
+          onClick={() => router.push("/games")}
         >
           VOLVER A LA BIBLIOTECA
         </button>

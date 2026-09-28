@@ -1,22 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface User {
   name: string;
 }
 
-interface Route {
-  name: string;
-  id?: string;
-}
-
-interface AuthProps {
-  navigate: (r: Route) => void;
-  onLogin: (user: User | null) => void;
-}
-
-export default function Auth({ navigate, onLogin }: AuthProps) {
+export default function Auth() {
+  const router = useRouter();
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -24,8 +16,9 @@ export default function Auth({ navigate, onLogin }: AuthProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    navigate({ name: "biblioteca" });
+    const userData = { name: (user || "PLAYER1").toUpperCase().slice(0, 10) };
+    localStorage.setItem("av_user", JSON.stringify(userData));
+    router.push("/games");
   };
 
   return (
@@ -105,8 +98,8 @@ export default function Auth({ navigate, onLogin }: AuthProps) {
           className="btn ghost"
           style={{ width: "100%", marginTop: 10 }}
           onClick={() => {
-            onLogin(null);
-            navigate({ name: "biblioteca" });
+            localStorage.removeItem("av_user");
+            router.push("/games");
           }}
         >
           JUGAR COMO INVITADO

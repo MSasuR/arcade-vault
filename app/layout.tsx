@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Press_Start_2P, JetBrains_Mono, Courier_Prime } from "next/font/google";
 import "./globals.css";
+import AppLayout from "./components/AppLayout";
 
 const pressStart2P = Press_Start_2P({
   weight: "400",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   description: "Arcade Vault — bóveda retro de videojuegos clásicos.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="es"
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="av-bg" />
         <div className="av-noise" />
         <div id="root">
-          <main className="av-main">{children}</main>
+          <AppLayout>{children}</AppLayout>
         </div>
       </body>
     </html>

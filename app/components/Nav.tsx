@@ -1,40 +1,36 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 interface User {
   name: string;
 }
 
-interface Route {
-  name: string;
-  id?: string;
-}
-
-interface NavProps {
-  route: Route;
-  navigate: (r: Route) => void;
+export default function Nav({
+  user,
+  onSignOut,
+}: {
   user: User | null;
   onSignOut: () => void;
-}
-
-export default function Nav({ route, navigate, user, onSignOut }: NavProps) {
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const isActive = (name: string) =>
-    route.name === name ||
-    (name === "biblioteca" && route.name === "detalle") ||
-    (name === "biblioteca" && route.name === "player");
+  const isActive = (path: string) => {
+    return pathname === path || pathname.startsWith(path + "/");
+  };
 
-  const go = (r: Route) => {
+  const go = (path: string) => {
     setOpen(false);
-    navigate(r);
+    router.push(path);
   };
 
   return (
     <React.Fragment>
       <nav className="av-nav">
-        <div className="logo" onClick={() => go({ name: "biblioteca" })}>
+        <div className="logo" onClick={() => go("/games")}>
           <div className="logo-mark"></div>
           <div className="logo-text neon-cyan">
             ARCADE <span className="neon-magenta">VAULT</span>
@@ -42,14 +38,14 @@ export default function Nav({ route, navigate, user, onSignOut }: NavProps) {
         </div>
         <div className="links">
           <a
-            className={isActive("biblioteca") ? "active" : ""}
-            onClick={() => go({ name: "biblioteca" })}
+            className={isActive("/games") ? "active" : ""}
+            onClick={() => go("/games")}
           >
             Biblioteca
           </a>
           <a
-            className={isActive("salon") ? "active" : ""}
-            onClick={() => go({ name: "salon" })}
+            className={isActive("/salon") ? "active" : ""}
+            onClick={() => go("/salon")}
           >
             Salón de la Fama
           </a>
@@ -69,7 +65,7 @@ export default function Nav({ route, navigate, user, onSignOut }: NavProps) {
         ) : (
           <button
             className="btn auth-btn"
-            onClick={() => go({ name: "auth" })}
+            onClick={() => go("/auth")}
           >
             Iniciar Sesión
           </button>
@@ -95,20 +91,20 @@ export default function Nav({ route, navigate, user, onSignOut }: NavProps) {
           MENÚ
         </div>
         <a
-          className={isActive("biblioteca") ? "active" : ""}
-          onClick={() => go({ name: "biblioteca" })}
+          className={isActive("/games") ? "active" : ""}
+          onClick={() => go("/games")}
         >
           Biblioteca
         </a>
         <a
-          className={isActive("salon") ? "active" : ""}
-          onClick={() => go({ name: "salon" })}
+          className={isActive("/salon") ? "active" : ""}
+          onClick={() => go("/salon")}
         >
           Salón de la Fama
         </a>
         <a
-          className={isActive("auth") ? "active" : ""}
-          onClick={() => go({ name: "auth" })}
+          className={isActive("/auth") ? "active" : ""}
+          onClick={() => go("/auth")}
         >
           {user ? "Cuenta" : "Iniciar Sesión"}
         </a>
