@@ -30,7 +30,7 @@ export default function Nav({
   return (
     <React.Fragment>
       <nav className="av-nav">
-        <div className="logo" onClick={() => go("/games")}>
+        <div className="logo" onClick={() => go("/")}>
           <div className="logo-mark"></div>
           <div className="logo-text neon-cyan">
             ARCADE <span className="neon-magenta">VAULT</span>
