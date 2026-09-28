@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"${CLAUDE_PROJECT_DIR}\\.claude\\hooks\\format-on-write.ps1\""
+          }
+        ]
+      }
+    ]
+  }
+}
