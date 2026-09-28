@@ -1,69 +1,114 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect } from "react";
+import { GAMES, CATS, seededScores } from "./data";
+
+// Component imports (will be defined below)
+import Nav from "./components/Nav";
+import Auth from "./components/Auth";
+import Library from "./components/Library";
+import GameDetail from "./components/GameDetail";
+import GamePlayer from "./components/GamePlayer";
+import HallOfFame from "./components/HallOfFame";
+
+interface User {
+  name: string;
+}
+
+interface Route {
+  name: string;
+  id?: string;
+}
+
+export default function App() {
+  const [route, setRoute] = useState<Route>(() => {
+    if (typeof window === "undefined") return { name: "biblioteca" };
+    try {
+      const h = location.hash.replace(/^#/, "");
+      if (h) return JSON.parse(decodeURIComponent(h));
+    } catch (e) {}
+    return { name: "biblioteca" };
+  });
+
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return JSON.parse(localStorage.getItem("av_user") || "null");
+    } catch (e) {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    location.hash = encodeURIComponent(JSON.stringify(route));
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [route]);
+
+  const navigate = (r: Route) => setRoute(r);
+
+  const handleLogin = (u: User | null) => {
+    setUser(u);
+    if (u) {
+      localStorage.setItem("av_user", JSON.stringify(u));
+    } else {
+      localStorage.removeItem("av_user");
+    }
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    localStorage.removeItem("av_user");
+  };
+
+  const handleSaveScore = (entry: any) => {
+    try {
+      const all = JSON.parse(localStorage.getItem("av_scores") || "[]");
+      all.push({ ...entry, at: Date.now() });
+      localStorage.setItem("av_scores", JSON.stringify(all));
+    } catch (e) {}
+  };
+
+  let screen = null;
+  if (route.name === "biblioteca")
+    screen = <Library navigate={navigate} />;
+  else if (route.name === "detalle")
+    screen = <GameDetail id={route.id || ""} navigate={navigate} />;
+  else if (route.name === "player")
+    screen = (
+      <GamePlayer
+        id={route.id || ""}
+        user={user}
+        navigate={navigate}
+        onSaveScore={handleSaveScore}
+      />
+    );
+  else if (route.name === "auth")
+    screen = <Auth navigate={navigate} onLogin={handleLogin} />;
+  else if (route.name === "salon")
+    screen = <HallOfFame user={user} navigate={navigate} />;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <React.Fragment>
+      <Nav route={route} navigate={navigate} user={user} onSignOut={handleSignOut} />
+      <main className="av-main">{screen}</main>
+      <footer
+        style={{
+          borderTop: "1px solid var(--line)",
+          padding: "20px 32px",
+          textAlign: "center",
+          color: "var(--ink-faint)",
+          fontFamily: "var(--mono)",
+          fontSize: 11,
+          letterSpacing: "0.16em",
+        }}
+      >
+        © 2026 ARCADE VAULT · HECHO CON PIXELES Y NEÓN · v2.6.0
+      </footer>
+    </React.Fragment>
   );
 }
+
+// Make data available globally for components
+(globalThis as any).GAMES = GAMES;
+(globalThis as any).CATS = CATS;
+(globalThis as any).seededScores = seededScores;
