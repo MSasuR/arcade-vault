@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { GAMES } from "@/app/data";
+import type { Game } from "@/app/data";
 import MiniCard from "./MiniCard";
 
-export default function GamesPreviewSection() {
+export default function GamesPreviewSection({ games }: { games: Game[] }) {
   const router = useRouter();
 
   return (
@@ -15,7 +15,7 @@ export default function GamesPreviewSection() {
         <div className="section-rule"></div>
       </div>
       <div className="mini-rail">
-        {GAMES.slice(0, 6).map((g) => (
+        {games.slice(0, 6).map((g) => (
           <MiniCard key={g.id} game={g} />
         ))}
       </div>

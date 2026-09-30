@@ -1,11 +1,9 @@
-"use client";
-
-import { useParams } from "next/navigation";
 import GamePlayer from "@/app/components/GamePlayer";
+import { getGame } from "@/lib/games";
 
-export default function GamePlayerPage() {
-  const params = useParams();
-  const id = params.id as string;
+export default async function GamePlayerPage({ params }: PageProps<"/player/[id]">) {
+  const { id } = await params;
+  const game = await getGame(id);
 
-  return <GamePlayer id={id} />;
+  return <GamePlayer game={game} />;
 }

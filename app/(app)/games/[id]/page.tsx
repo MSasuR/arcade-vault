@@ -1,11 +1,9 @@
-"use client";
-
-import { useParams } from "next/navigation";
 import GameDetail from "@/app/components/GameDetail";
+import { getGame } from "@/lib/games";
 
-export default function GameDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
+export default async function GameDetailPage({ params }: PageProps<"/games/[id]">) {
+  const { id } = await params;
+  const game = await getGame(id);
 
-  return <GameDetail id={id} />;
+  return <GameDetail game={game} />;
 }

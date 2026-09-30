@@ -1,16 +1,36 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GAMES, seededScores } from "../data";
+import type { Game } from "../data";
+import { formatDate, getTopScores, type LeaderboardEntry } from "@/lib/leaderboard";
 
-export default function GameDetail({ id }: { id: string }) {
+const TOP_LIMIT = 10;
+
+export default function GameDetail({ game }: { game: Game | null }) {
   const router = useRouter();
-  const game = useMemo(() => GAMES.find((g) => g.id === id), [id]);
-  const scores = useMemo(
-    () => seededScores(id.length * 17 + 3, 10),
-    [id]
+  const id = game?.id ?? "";
+  const [result, setResult] = useState<{ id: string; rows: LeaderboardEntry[] | null } | null>(
+    null,
   );
+  const current = result?.id === id ? result : null;
+  const status = !current ? "loading" : current.rows ? "ready" : "error";
+  const scores = current?.rows ?? [];
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    getTopScores(id, TOP_LIMIT)
+      .then((rows) => {
+        if (!cancelled) setResult({ id, rows });
+      })
+      .catch(() => {
+        if (!cancelled) setResult({ id, rows: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   if (!game) return null;
 
@@ -60,16 +80,10 @@ export default function GameDetail({ id }: { id: string }) {
             </div>
           </div>
           <div className="detail-actions">
-            <button
-              className="btn xl pulse"
-              onClick={() => router.push(`/player/${game.id}`)}
-            >
+            <button className="btn xl pulse" onClick={() => router.push(`/player/${game.id}`)}>
               ▶ JUGAR AHORA
             </button>
-            <button
-              className="btn ghost lg"
-              onClick={() => router.push('/games')}
-            >
+            <button className="btn ghost lg" onClick={() => router.push("/games")}>
               VOLVER AL VAULT
             </button>
           </div>
@@ -79,30 +93,39 @@ export default function GameDetail({ id }: { id: string }) {
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
-          {scores.map((r, i) => (
-            <div
-              key={r.name + i}
-              className={
-                "lb-row" +
-                (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
-              }
-            >
-              <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-              <div className="pl">
-                {r.name}
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "var(--ink-faint)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {r.date}
-                </div>
-              </div>
-              <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+          {status === "loading" && <div className="lb-msg">CARGANDO...</div>}
+          {status === "error" && (
+            <div className="lb-msg" style={{ color: "var(--magenta)" }}>
+              NO SE PUDO CARGAR EL RANKING
             </div>
-          ))}
+          )}
+          {status === "ready" && scores.length === 0 && (
+            <div className="lb-msg">AÚN NO HAY MARCAS. SÉ EL PRIMERO.</div>
+          )}
+          {status === "ready" &&
+            scores.map((r, i) => (
+              <div
+                key={r.username}
+                className={
+                  "lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
+                }
+              >
+                <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+                <div className="pl">
+                  {r.username}
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "var(--ink-faint)",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    {formatDate(r.createdAt)}
+                  </div>
+                </div>
+                <div className="sc">{r.score.toLocaleString("es-ES")}</div>
+              </div>
+            ))}
         </div>
       </aside>
     </div>
