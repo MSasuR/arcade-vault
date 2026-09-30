@@ -38,6 +38,17 @@ Reglas del flujo:
 - `/add-game` usa `.claude/skills/add-game/reference.md` (contrato técnico para integrar juegos) y `spec-skeleton.md` (estructura de la spec). Si cambia la forma de integrar juegos, actualiza `reference.md`.
 - `/spec` y `/spec-impl` vienen de `Klerith/fernando-skills` (`skills-lock.json`).
 
+### Subagentes (`.claude/agents/`)
+
+| Agente         | Uso                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `game-planner` | Planifica y decide qué juego encaja en la plataforma; propone 1–3 candidatos puntuados y un brief listo para `/add-game` |
+
+- Flujo para un juego nuevo: `game-planner` (elige) → `/add-game <brief>` (spec en `Draft`) → el usuario aprueba → `/spec-impl NN-slug`.
+- Registra cada sugerencia en `references/game-suggestions-todo.md` (Pendientes / En curso / Hechos / Descartados) y la sincroniza con `specs/` y `PLAYABLE` al arrancar.
+- Memoria persistente propia (`memory: project`) en `.claude/agent-memory/game-planner/`: preferencias del usuario y motivos de descarte, para no repetir sugerencias.
+- Solo lee (Supabase solo `select`); no escribe código, specs ni commits.
+
 ## Arquitectura
 
 ### Rutas (`app/`)
@@ -90,7 +101,7 @@ Reglas del flujo:
 ## Convenciones y avisos
 
 - Responde al usuario en español.
-- `references/` es **solo lectura** (juegos de partida y plantillas de diseño); nunca se modifica.
+- `references/` es **solo lectura** (juegos de partida y plantillas de diseño); nunca se modifica, **salvo `references/game-suggestions-todo.md`**, que mantiene el agente `game-planner`.
 - Formularios con validación propia: añade `noValidate` al `<form>` (un `input type="email"` bloquea el submit si no).
 - El contacto envía desde `onboarding@resend.dev` porque no hay dominio verificado en Resend.
 - Hook PostToolUse (`.claude/hooks/format-on-write.ps1`): aplica Prettier (y `eslint --fix` en `.tsx`/`.jsx`) a los `.tsx`, `.jsx` y `.md` que se crean o editan. Los `.ts` no se formatean solos; **no pases Prettier a archivos `.ts` existentes** (genera diffs de formato ajenos al cambio).
