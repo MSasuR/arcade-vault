@@ -1,6 +1,6 @@
 # Juego Snake en la Plataforma
 
-**State:** Approved  
+**State:** Implemented  
 **Depends on:** SPEC 04 (Supabase Auth, hook `useUser()`), SPEC 05 (módulo Asteroids, registro `PLAYABLE` y `GamePlayer`), SPEC 06 (tablas `games`/`scores` y ranking), SPEC 07 (contrato común `app/components/games/types.ts` y HUD dinámico de `GamePlayer`), SPEC 08 (patrón de assets en `public/games/<id>/` y carga de sprites)  
 **Date:** 2026-09-30  
 **Objective:** Crear el juego Snake como módulo TypeScript montable en canvas, usando las frutas pixel-art de `references/started-games/05-snake/fruits.png`, y conectarlo a `GamePlayer` (HUD, pausa, fin de partida, puntuación y leaderboard) en la ruta `/player/snake`.
