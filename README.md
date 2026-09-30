@@ -78,6 +78,18 @@ La partida se pausa sola al cambiar de pestaña. Con sesión iniciada, la puntua
 
 El HUD muestra Puntuación, Líneas y Nivel. Tetris está registrado en `PLAYABLE` y su fila ya existe en `public.games` (`tetris`), así que no necesitó migración. Se guarda la puntuación igual que en Asteroids.
 
+### Breakout (Arkanoid)
+
+| Tecla / entrada | Acción                                  |
+| --------------- | --------------------------------------- |
+| Ratón           | Mover la paleta (sobre el canvas)       |
+| `←` `→`         | Mover la paleta                         |
+| `P` / `Escape`  | Pausar / reanudar                       |
+| `M`             | Silenciar / activar el sonido           |
+| `Enter`         | Reiniciar tras `GAME OVER` o tras ganar |
+
+Son 5 niveles, 3 vidas y 10 puntos por bloque; completar el nivel 5 también termina la partida y guarda la marca. El HUD muestra Puntuación, Vidas y Nivel. Breakout está registrado en `PLAYABLE` con el id `breakout`, cuya fila ya existía en `public.games` (portada `cover-bricks`), así que no necesitó migración. Sus assets (spritesheet y sonidos) viven en `public/games/breakout/`.
+
 ### Contrato común de los juegos
 
 Todos los módulos usan `GameCallbacks` y `GameInstance` de `app/components/games/types.ts`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales y el HUD de `GamePlayer` solo muestra las métricas que el juego emite.
