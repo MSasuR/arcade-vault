@@ -90,6 +90,19 @@ El HUD muestra Puntuación, Líneas y Nivel. Tetris está registrado en `PLAYABL
 
 Son 5 niveles, 3 vidas y 10 puntos por bloque; completar el nivel 5 también termina la partida y guarda la marca. El HUD muestra Puntuación, Vidas y Nivel. Breakout está registrado en `PLAYABLE` con el id `breakout`, cuya fila ya existía en `public.games` (portada `cover-bricks`), así que no necesitó migración. Sus assets (spritesheet y sonidos) viven en `public/games/breakout/`.
 
+### Snake
+
+| Tecla           | Acción                                              |
+| --------------- | --------------------------------------------------- |
+| `←` `↑` `→` `↓` | Cambiar de dirección                                |
+| `W` `A` `S` `D` | Cambiar de dirección                                |
+| `P` / `Escape`  | Pausar / reanudar                                   |
+| `Enter`         | Reiniciar tras `GAME OVER` o tras llenar el tablero |
+
+La serpiente espera la primera flecha para empezar, no puede darse la vuelta de 180° y admite hasta 2 giros pendientes. Cada fruta da 10 puntos y cada 5 frutas sube el nivel (de 8 a 16 pasos por segundo). Chocar con la pared o con el propio cuerpo termina la partida; ocupar las 300 celdas del tablero de 20×15 también, como victoria. El HUD muestra Puntuación y Nivel. Snake está registrado en `PLAYABLE` con el id `snake`, cuya fila ya existía en `public.games` (portada `cover-snake`), así que no necesitó migración. Las frutas se dibujan desde `public/games/snake/fruits.png` (la fila pixel-art del atlas de `references/started-games/05-snake`); la serpiente se dibuja en el canvas porque el atlas no trae sprites suyos.
+
+Atribución: según el comentario de `sprites.js`, las imágenes de las frutas provienen de [The Spriters Resource (Google Snake)](https://www.spriters-resource.com/browser_games/googlesnakegame/). Son gráficos de terceros: revisa el uso permitido antes de publicar el proyecto.
+
 ### Contrato común de los juegos
 
 Todos los módulos usan `GameCallbacks` y `GameInstance` de `app/components/games/types.ts`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales y el HUD de `GamePlayer` solo muestra las métricas que el juego emite.

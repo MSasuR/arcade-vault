@@ -59,6 +59,8 @@ export default function GamePlayer({ game }: { game: Game | null }) {
         if (l === 1) savedRef.current = false;
       },
       onGameOver: (finalScore) => {
+        // Si TERMINAR ya está guardando esta partida, el fin de partida no la guarda otra vez
+        if (savedRef.current) return;
         savedRef.current = true;
         void saveScore(gameId, finalScore);
       },
