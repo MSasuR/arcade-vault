@@ -1,11 +1,8 @@
 import { createAsteroids } from "./asteroids";
-import type { AsteroidsCallbacks, AsteroidsGame } from "./asteroids/types";
-
-export type GameFactory = (
-  canvas: HTMLCanvasElement,
-  callbacks: AsteroidsCallbacks,
-) => AsteroidsGame;
+import { createTetris } from "./tetris";
+import type { GameFactory } from "./types";
 
 export const PLAYABLE: Record<string, GameFactory> = {
   asteroids: createAsteroids,
+  tetris: createTetris,
 };

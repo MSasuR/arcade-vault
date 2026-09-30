@@ -49,7 +49,7 @@ Los juegos viven en `app/components/games/<id>/` como módulos TypeScript que ex
 
 Para activar un juego nuevo:
 
-1. Crear el módulo en `app/components/games/<id>/` siguiendo el contrato de `asteroids/types.ts`.
+1. Crear el módulo en `app/components/games/<id>/` siguiendo el contrato de `app/components/games/types.ts`.
 2. Añadirlo a `public.games` con una migración (ver arriba) y registrarlo en `app/components/games/registry.ts` (`PLAYABLE`) con el mismo `id`.
 
 Los juegos sin entrada en `PLAYABLE` siguen mostrando el placeholder "JUEGO AQUÍ".
@@ -64,3 +64,20 @@ Los juegos sin entrada en `PLAYABLE` siguen mostrando el placeholder "JUEGO AQU�
 | `P`       | Pausar / reanudar                     |
 
 La partida se pausa sola al cambiar de pestaña. Con sesión iniciada, la puntuación se guarda en `public.scores` al llegar a `GAME OVER` o al pulsar TERMINAR.
+
+### Tetris
+
+| Tecla     | Acción                        |
+| --------- | ----------------------------- |
+| `←` `→`   | Mover la pieza                |
+| `↓`       | Bajar una fila (soft drop)    |
+| `↑` / `X` | Rotar                         |
+| `Espacio` | Caída instantánea (hard drop) |
+| `P`       | Pausar / reanudar             |
+| `Enter`   | Reiniciar tras `GAME OVER`    |
+
+El HUD muestra Puntuación, Líneas y Nivel. Tetris está registrado en `PLAYABLE` y su fila ya existe en `public.games` (`tetris`), así que no necesitó migración. Se guarda la puntuación igual que en Asteroids.
+
+### Contrato común de los juegos
+
+Todos los módulos usan `GameCallbacks` y `GameInstance` de `app/components/games/types.ts`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales y el HUD de `GamePlayer` solo muestra las métricas que el juego emite.

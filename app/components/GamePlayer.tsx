@@ -6,7 +6,7 @@ import type { Game } from "../data";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "./useUser";
 import { PLAYABLE } from "./games/registry";
-import type { AsteroidsGame } from "./games/asteroids/types";
+import type { GameInstance } from "./games/types";
 
 export default function GamePlayer({ game }: { game: Game | null }) {
   const router = useRouter();
@@ -16,12 +16,14 @@ export default function GamePlayer({ game }: { game: Game | null }) {
   const factory = game ? PLAYABLE[game.id] : undefined;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gameRef = useRef<AsteroidsGame | null>(null);
+  const gameRef = useRef<GameInstance | null>(null);
   const savedRef = useRef(false);
   const userRef = useRef(user);
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [level, setLevel] = useState(1);
+  // null hasta que el juego emite la métrica: el HUD solo muestra las que el juego tiene
+  const [lives, setLives] = useState<number | null>(null);
+  const [level, setLevel] = useState<number | null>(null);
+  const [lines, setLines] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function GamePlayer({ game }: { game: Game | null }) {
     const instance = factory(canvas, {
       onScore: setScore,
       onLives: setLives,
+      onLines: setLines,
       onLevel: (l) => {
         setLevel(l);
         // Reinicio tras GAME OVER: el nivel vuelve a 1 y se permite guardar de nuevo
@@ -95,14 +98,24 @@ export default function GamePlayer({ game }: { game: Game | null }) {
           <div className="l">Puntuación</div>
           <div className="v">{factory ? score : 0}</div>
         </div>
-        <div className="hud-stat lives">
-          <div className="l">Vidas</div>
-          <div className="v">{factory ? lives : 3}</div>
-        </div>
-        <div className="hud-stat level">
-          <div className="l">Nivel</div>
-          <div className="v">{factory ? level : 1}</div>
-        </div>
+        {(!factory || lives !== null) && (
+          <div className="hud-stat lives">
+            <div className="l">Vidas</div>
+            <div className="v">{factory ? lives : 3}</div>
+          </div>
+        )}
+        {factory && lines !== null && (
+          <div className="hud-stat level">
+            <div className="l">Líneas</div>
+            <div className="v">{lines}</div>
+          </div>
+        )}
+        {(!factory || level !== null) && (
+          <div className="hud-stat level">
+            <div className="l">Nivel</div>
+            <div className="v">{factory ? level : 1}</div>
+          </div>
+        )}
         <div className="hud-actions">
           <button className="btn ghost" onClick={handlePause} disabled={!factory}>
             {paused ? "REANUDAR" : "PAUSAR"}

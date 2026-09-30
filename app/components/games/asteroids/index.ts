@@ -6,7 +6,7 @@ import {
   Ship,
   type Keys,
 } from "./entities";
-import type { AsteroidsCallbacks, AsteroidsGame } from "./types";
+import type { GameCallbacks, GameInstance } from "../types";
 import {
   H,
   POINTS,
@@ -17,16 +17,14 @@ import {
   rand,
 } from "./utils";
 
-export type { AsteroidsCallbacks, AsteroidsGame } from "./types";
-
 type State = "playing" | "dead" | "gameover";
 
 const GAME_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "Space"];
 
 export function createAsteroids(
   canvas: HTMLCanvasElement,
-  callbacks: AsteroidsCallbacks,
-): AsteroidsGame {
+  callbacks: GameCallbacks,
+): GameInstance {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D no disponible");
 
@@ -133,8 +131,8 @@ export function createAsteroids(
     state = "playing";
     spawnAsteroids(4);
     setScore(0);
-    callbacks.onLives(lives);
-    callbacks.onLevel(level);
+    callbacks.onLives?.(lives);
+    callbacks.onLevel?.(level);
   }
 
   function nextLevel() {
@@ -146,7 +144,7 @@ export function createAsteroids(
     killsSinceSpawn = 0;
     ship.reset();
     spawnAsteroids(3 + level);
-    callbacks.onLevel(level);
+    callbacks.onLevel?.(level);
   }
 
   function explode(x: number, y: number, count = 8) {
@@ -157,7 +155,7 @@ export function createAsteroids(
     explode(ship.x, ship.y, 14);
     ship.dead = true;
     lives--;
-    callbacks.onLives(lives);
+    callbacks.onLives?.(lives);
     if (lives <= 0) {
       state = "gameover";
       callbacks.onGameOver(score);
