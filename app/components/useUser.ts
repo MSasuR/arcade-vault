@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export interface User {
+  id: string;
   name: string;
 }
 
@@ -24,7 +25,7 @@ export function useUser() {
           .select("username")
           .eq("id", id)
           .maybeSingle();
-        if (data) next = { name: data.username };
+        if (data) next = { id, name: data.username };
       }
       if (active) {
         setUser(next);

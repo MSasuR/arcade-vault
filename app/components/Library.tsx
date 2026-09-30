@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { GAMES, CATS } from "../data";
+import { CATS, type Game } from "../data";
 
 interface GameWithRef {
   id: string;
@@ -83,18 +83,18 @@ function GameCard({
   );
 }
 
-export default function Library() {
+export default function Library({ games }: { games: Game[] }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("TODOS");
 
   const filtered = useMemo(() => {
-    return GAMES.filter(
+    return games.filter(
       (g) =>
         (cat === "TODOS" || g.cat === cat) &&
         g.title.toLowerCase().includes(q.toLowerCase())
     );
-  }, [q, cat]);
+  }, [games, q, cat]);
 
   return (
     <div className="fade-in">

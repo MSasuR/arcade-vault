@@ -11,6 +11,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     try {
       // Clave legacy de la auth falsa (SPEC 01), reemplazada por Supabase Auth.
       localStorage.removeItem("av_user");
+      // Puntuaciones locales (SPEC 01/05), reemplazadas por la tabla `scores` (SPEC 06).
+      localStorage.removeItem("av_scores");
     } catch {}
   }, []);
 

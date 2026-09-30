@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GAMES } from "../data";
+import type { Game } from "../data";
+import { createClient } from "@/lib/supabase/client";
 import { useUser } from "./useUser";
 import { PLAYABLE } from "./games/registry";
 import type { AsteroidsGame } from "./games/asteroids/types";
 
-export default function GamePlayer({ id }: { id: string }) {
+export default function GamePlayer({ game }: { game: Game | null }) {
   const router = useRouter();
   const { user } = useUser();
-  const game = useMemo(() => GAMES.find((g) => g.id === id), [id]);
+  const [supabase] = useState(() => createClient());
+  const id = game?.id ?? "";
   const factory = game ? PLAYABLE[game.id] : undefined;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,20 +28,19 @@ export default function GamePlayer({ id }: { id: string }) {
     userRef.current = user;
   }, [user]);
 
-  const saveScore = useCallback((gameId: string, value: number) => {
-    const current = userRef.current;
-    if (!current || value <= 0) return;
-    try {
-      const all = JSON.parse(localStorage.getItem("av_scores") || "[]");
-      all.push({
-        gameId,
-        playerName: current.name,
-        score: value,
-        at: Date.now(),
-      });
-      localStorage.setItem("av_scores", JSON.stringify(all));
-    } catch {}
-  }, []);
+  // Inserta la marca en `scores` (user_id lo rellena auth.uid()). Si falla, savedRef
+  // vuelve a false para que TERMINAR reintente; el juego no se interrumpe.
+  const saveScore = useCallback(
+    async (gameId: string, value: number) => {
+      if (!userRef.current || value <= 0) return;
+      const { error } = await supabase.from("scores").insert({ game_id: gameId, score: value });
+      if (error) {
+        console.error("No se pudo guardar la puntuación:", error.message);
+        savedRef.current = false;
+      }
+    },
+    [supabase],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -56,7 +57,7 @@ export default function GamePlayer({ id }: { id: string }) {
       },
       onGameOver: (finalScore) => {
         savedRef.current = true;
-        saveScore(gameId, finalScore);
+        void saveScore(gameId, finalScore);
       },
       onPause: setPaused,
     });
@@ -69,10 +70,10 @@ export default function GamePlayer({ id }: { id: string }) {
 
   if (!game) return null;
 
-  const handleEndGame = () => {
+  const handleEndGame = async () => {
     if (!savedRef.current && gameRef.current) {
       savedRef.current = true;
-      saveScore(game.id, gameRef.current.getScore());
+      await saveScore(game.id, gameRef.current.getScore());
     }
     router.push(`/games/${game.id}`);
   };

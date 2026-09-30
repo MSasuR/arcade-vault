@@ -898,6 +898,14 @@ a {
   border-bottom: 1px solid var(--line);
   letter-spacing: 0.14em;
 }
+.leaderboard .lb-msg {
+  padding: 24px 12px;
+  text-align: center;
+  font-family: var(--pixel);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
 .lb-row {
   display: grid;
   grid-template-columns: 36px 1fr 110px;
@@ -1489,6 +1497,14 @@ a {
   border-bottom: 1px solid var(--line-2);
   opacity: 0;
   animation: rise 360ms ease-out forwards;
+}
+.hall-table .hall-msg {
+  padding: 28px 18px;
+  text-align: center;
+  font-family: var(--pixel);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
 }
 .hall-table .tr.you {
   background: rgba(245, 255, 0, 0.05);
