@@ -49,6 +49,14 @@ Reglas del flujo:
 - Memoria persistente propia (`memory: project`) en `.claude/agent-memory/game-planner/`: preferencias del usuario y motivos de descarte, para no repetir sugerencias.
 - Solo lee (Supabase solo `select`); no escribe código, specs ni commits.
 
+| Agente     | Uso                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `game-jam` | Recibe un tema y diseña un juego con 2 specs completas en `Draft` en `specs/game-jam/<id>/`: `01-<id>-game.md` y `02-<id>-catalog.md` |
+
+- Flujo: `game-jam <tema>` → el usuario revisa las specs → las mueve/renumera a `specs/NN-…` → las aprueba → `/spec-impl NN-slug`.
+- `specs/game-jam/` es la única excepción a la numeración `NN-slug` de `specs/`.
+- Decide sin preguntar (justifica en `Decisions Taken and Discarded`); solo escribe en `specs/game-jam/` y nunca sobrescribe.
+
 ## Arquitectura
 
 ### Rutas (`app/`)
