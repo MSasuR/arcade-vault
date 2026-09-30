@@ -2,6 +2,7 @@
 
 .playwright-screenshots/*
 .playwright-screenshots/.gitkeep
+.playwright-mcp/*
 
 # dependencies
 /node_modules
