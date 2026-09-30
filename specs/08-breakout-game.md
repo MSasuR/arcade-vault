@@ -1,6 +1,6 @@
 # Juego Breakout (Arkanoid) en la Plataforma
 
-**State:** Approved  
+**State:** Implemented  
 **Depends on:** SPEC 04 (Supabase Auth, hook `useUser()`), SPEC 05 (módulo Asteroids, registro `PLAYABLE` y `GamePlayer`), SPEC 06 (tablas `games`/`scores` y ranking), SPEC 07 (contrato común `app/components/games/types.ts` y HUD dinámico de `GamePlayer`)  
 **Date:** 2026-09-30  
 **Objective:** Portar el Arkanoid de `references/started-games/04-arkanoid` a un módulo TypeScript montable en canvas y conectarlo a `GamePlayer` (HUD, pausa, sonido, fin de partida, puntuación y leaderboard) en la ruta `/player/breakout`.
