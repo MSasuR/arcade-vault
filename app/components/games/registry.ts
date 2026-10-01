@@ -10,3 +10,6 @@ export const PLAYABLE: Record<string, GameFactory> = {
   breakout: createBreakout,
   snake: createSnake,
 };
+
+// Juegos con skins del canvas (spec 10): solo en ellos GamePlayer muestra el selector
+export const SKINNABLE: ReadonlySet<string> = new Set<string>(["asteroids"]);

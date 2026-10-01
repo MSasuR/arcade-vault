@@ -36,9 +36,19 @@ export interface GameInstance {
   resume: () => void;
   getScore: () => number;
   destroy: () => void;
+  // Spec 10: cambia la paleta en caliente (ver sección 11)
+  setSkin?: (skin: SkinId) => void;
 }
 
-export type GameFactory = (canvas: HTMLCanvasElement, callbacks: GameCallbacks) => GameInstance;
+export interface GameOptions {
+  skin?: SkinId; // de app/components/games/skins.ts
+}
+
+export type GameFactory = (
+  canvas: HTMLCanvasElement,
+  callbacks: GameCallbacks,
+  options?: GameOptions,
+) => GameInstance;
 ```
 
 - `registry.ts` importa `GameFactory` de `types.ts` y deja `PLAYABLE` con una entrada por juego.
@@ -48,7 +58,7 @@ export type GameFactory = (canvas: HTMLCanvasElement, callbacks: GameCallbacks) 
 
 ## 3. Reglas del módulo del juego
 
-1. **API:** `create<Juego>(canvas, callbacks): GameInstance` en `app/components/games/<id>/index.ts`.
+1. **API:** `create<Juego>(canvas, callbacks, options?): GameInstance` en `app/components/games/<id>/index.ts` (`options.skin`, ver sección 11).
 2. **Sin globals:** todo el estado vive en el closure de `create<Juego>`. Sin variables de módulo mutables.
 3. **Sin DOM fuera de `create<Juego>`:** `window` y `document` solo se tocan dentro de la función (el build de Next renderiza en servidor). El módulo solo se invoca desde un `useEffect`.
 4. **Bucle:** `requestAnimationFrame` con `dt` en segundos y **tope de 0.05 s**. Si el original usa milisegundos o frames, se convierte y se documentan las constantes portadas.
@@ -131,6 +141,7 @@ values
 - Estado React: `score`, `lives`, `level`, `paused` (y `lines` si el juego lo emite).
 - PAUSAR alterna `pause()`/`resume()`; el botón cambia a REANUDAR vía `onPause`.
 - TERMINAR guarda (si corresponde) y navega a `/games/<id>`.
+- Selector de skin (`CLÁSICO / NEON / RETRO`) en el HUD, visible solo si el id está en `SKINNABLE`; ver sección 11.
 
 ## 10. Next.js 16 (este repo)
 
@@ -139,3 +150,34 @@ values
 - El middleware se llama **Proxy** (`proxy.ts`).
 - Los componentes con hooks o eventos llevan `"use client"`; el módulo del juego solo se usa desde uno.
 - Formato: el hook de PostToolUse aplica Prettier y ESLint a `.tsx`/`.jsx`/`.md` al escribir.
+
+## 11. Skins del canvas (spec 10)
+
+**Todo juego nuevo nace con 3 skins** y aparece en el selector de `GamePlayer`. Contrato común en `app/components/games/skins.ts`: `SkinId = "classic" | "neon" | "retro"`, `SKINS`, `DEFAULT_SKIN = "classic"` e `isSkinId`.
+
+| Skin      | Rol                                                                                                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `classic` | Por defecto. El look fiel al arcade original; si el juego se porta, es el aspecto actual sin regresión                                                                 |
+| `neon`    | Paleta de `globals.css` (`--cyan`, `--magenta`, `--yellow`, `--green`, `--ink`) sobre `--bg`; glow `shadowBlur` 4–12 solo en elementos clave, restablecido a 0 después |
+| `retro`   | Paleta limitada de 4–6 colores (p. ej. fósforo verde), sin glow ni degradados; **sin scanlines en el canvas** (`.crt-screen::after` ya las pinta)                      |
+
+Requisitos del módulo:
+
+1. `app/components/games/<id>/skins.ts` con la interfaz de paleta del juego y `PALETTES: Record<SkinId, Palette>`. **Ningún literal de color fuera de ese archivo** (comprobar con `grep -rnE '#[0-9a-fA-F]{3,6}\b|rgba?\(' app/components/games/<id>/ --exclude=skins.ts`).
+2. `create<Juego>(canvas, callbacks, options?)`: paleta inicial `PALETTES[isSkinId(options?.skin) ? options.skin : DEFAULT_SKIN]` en una variable del closure (sin estado global); el render la recibe por parámetro.
+3. `setSkin(skin)` en la instancia: solo reasigna la paleta (ignora valores inválidos). No reinicia la partida, no emite callbacks y el siguiente frame (también en pausa o en `GAME OVER`) ya la usa.
+4. Glow dentro de `save()`/`restore()` para que `shadowBlur` no deje halo en el resto del frame.
+5. Overlays (`PAUSA`, `GAME OVER`): en `neon`/`retro`, velo semitransparente del color de fondo bajo el texto para asegurar contraste.
+6. Juegos con sprites: `classic` usa el spritesheet original; `neon`/`retro` lo tiñen en un canvas offscreen cacheado por skin (creado dentro de `create<Juego>`) o usan primitivas. Nunca se modifica `public/games/<id>/`.
+7. Alta del id en `SKINNABLE` (`app/components/games/registry.ts`): solo con esa entrada `GamePlayer` muestra el selector `CLÁSICO / NEON / RETRO`. El skin es global (`localStorage` `av_skin`, hook `useSkin`); `GamePlayer` lo pasa como `options.skin` al crear el juego y llama a `setSkin` al cambiarlo.
+
+Checklist de modo oscuro (contraste WCAG medido con un script Node fuera del repo, también con la fila de scanline: fondo y figura × 0.82):
+
+- [ ] Fondo del canvas con luminancia relativa ≤ 0.05
+- [ ] Texto de overlays ≥ 4.5:1 contra su fondo real (con el velo y sobre los elementos que cruza)
+- [ ] Elementos de juego (jugador, enemigos, piezas, proyectiles…) ≥ 3:1 contra el fondo
+- [ ] Si la mecánica depende del color, los colores se distinguen entre sí (luminancia o tono)
+- [ ] Sin grandes áreas de blanco puro; el glow no borra la silueta
+- [ ] Se ve bien a 375 px (capturas en `.playwright-screenshots/skins/<id>-<skin>.png` y `-375.png`)
+
+El agente `skin-designer` audita estos puntos y puede añadir los skins a un juego que no los tenga.

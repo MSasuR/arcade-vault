@@ -994,6 +994,54 @@ a {
   gap: 10px;
 }
 
+/* ===== selector de skin del canvas (spec 10) ===== */
+.skin-picker .skin-opts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.skin-picker .skin-opt {
+  gap: 7px;
+  padding: 8px 10px;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+/* Reutiliza el ::before de .btn como muestra del color de la nave en ese skin */
+.skin-picker .skin-opt::before {
+  position: static;
+  inset: auto;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border: 0;
+  clip-path: none;
+  background: var(--swatch);
+  opacity: 0.55;
+}
+.skin-picker .skin-opt[data-skin="classic"] {
+  --swatch: #ffffff;
+}
+.skin-picker .skin-opt[data-skin="neon"] {
+  --swatch: #00f5ff;
+}
+.skin-picker .skin-opt[data-skin="retro"] {
+  --swatch: #b4ffb4;
+}
+.skin-picker .skin-opt[aria-pressed="true"] {
+  border-color: var(--cyan);
+  color: var(--ink);
+}
+.skin-picker .skin-opt[aria-pressed="true"]::before {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--swatch);
+}
+/* El clip-path recorta un outline externo: se dibuja hacia dentro */
+.skin-picker .skin-opt:focus-visible {
+  outline: 1px solid var(--cyan);
+  outline-offset: -4px;
+}
+
 .crt {
   position: relative;
   border-radius: 28px;

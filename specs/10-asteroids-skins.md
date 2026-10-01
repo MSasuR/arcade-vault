@@ -1,6 +1,6 @@
 # Skins del canvas: infraestructura común y Asteroids
 
-**State:** Approved  
+**State:** Implemented  
 **Depends on:** SPEC 05 (módulo Asteroids y `GamePlayer`), SPEC 07 (contrato común `app/components/games/types.ts` y HUD dinámico de `GamePlayer`)  
 **Date:** 2026-09-30  
 **Objective:** Añadir la infraestructura común de skins del canvas (tipo `SkinId`, `options.skin`, `setSkin` y selector persistido en `GamePlayer`) y los 3 skins de Asteroids (`classic` por defecto, `neon` y `retro`), todos legibles en la app oscura.

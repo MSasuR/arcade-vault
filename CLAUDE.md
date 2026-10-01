@@ -20,7 +20,7 @@ No hay framework de tests. Las verificaciones se hacen con `npm run build`, scri
 
 ## Flujo de trabajo (spec-driven)
 
-Todo cambio relevante pasa por una spec en `specs/NN-slug.md` (`01` a `09` existen hoy). **No escribas código de una feature sin spec aprobada.**
+Todo cambio relevante pasa por una spec en `specs/NN-slug.md` (`01` a `10` existen hoy). **No escribas código de una feature sin spec aprobada.**
 
 | Skill                        | Uso                                                                                                                            |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -100,18 +100,19 @@ Reglas del flujo:
 
 ### Juegos (`app/components/games/`)
 
-- Contrato común en `types.ts`: `createX(canvas, callbacks: GameCallbacks): GameInstance`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales. `GameInstance` expone `pause`, `resume`, `getScore` y `destroy`.
+- Contrato común en `types.ts`: `createX(canvas, callbacks: GameCallbacks, options?: GameOptions): GameInstance`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales. `GameInstance` expone `pause`, `resume`, `getScore`, `destroy` y, en los juegos con skins, `setSkin`.
+- Skins del canvas (spec 10): `skins.ts` define `SkinId` (`classic` por defecto, `neon`, `retro`); cada juego con skins tiene `<id>/skins.ts` (`PALETTES`, único archivo con colores), recibe `options.skin` y cambia la paleta en caliente con `setSkin`. `SKINNABLE` (`registry.ts`) decide en qué juegos `GamePlayer` muestra el selector; el skin se persiste en `localStorage` (`av_skin`) con el hook `useSkin`. Requisitos y checklist de modo oscuro en `.claude/skills/add-game/reference.md` (sección 11).
 - `registry.ts` → `PLAYABLE: Record<id, GameFactory>`. Los ids sin entrada muestran el placeholder "JUEGO AQUÍ" en `GamePlayer`.
 - `GamePlayer` muestra en el HUD solo las métricas que el juego emite y guarda la puntuación en `scores` **solo con sesión y `score > 0`**, al fin de partida o con TERMINAR, una vez por partida (`savedRef`; se rearma cuando el juego emite nivel 1 al reiniciar).
 - Reglas de los módulos: estado en el closure (sin globals), `window`/`document`/`Image`/`Audio` solo dentro de `createX`, `dt` en segundos con tope de 0.05 s, canvas lógico fijo (800×600) escalado por CSS, `destroy()` idempotente (compatible con Strict Mode), `preventDefault` solo en teclas del juego, pausa con `P` y al ocultar la pestaña, `Enter` para reiniciar tras el fin de partida (salvo Asteroids, que usa `Espacio`).
 - Assets estáticos de cada juego en `public/games/<id>/`.
 
-| id          | Spec | Métricas del HUD            | Notas                                                                  |
-| ----------- | ---- | --------------------------- | ---------------------------------------------------------------------- |
-| `asteroids` | 05   | Puntuación / Vidas / Nivel  | Vectorial, sin assets                                                  |
-| `tetris`    | 07   | Puntuación / Líneas / Nivel | 8 piezas (incluida la tuerca N), paleta neón                           |
-| `breakout`  | 08   | Puntuación / Vidas / Nivel  | Port de Arkanoid: spritesheet, sonidos (`M` silencia), ratón + teclado |
-| `snake`     | 09   | Puntuación / Nivel          | Juego nuevo con el atlas de frutas de `05-snake`                       |
+| id          | Spec | Métricas del HUD            | Skins        | Notas                                                                  |
+| ----------- | ---- | --------------------------- | ------------ | ---------------------------------------------------------------------- |
+| `asteroids` | 05   | Puntuación / Vidas / Nivel  | Sí (spec 10) | Vectorial, sin assets                                                  |
+| `tetris`    | 07   | Puntuación / Líneas / Nivel | No           | 8 piezas (incluida la tuerca N), paleta neón                           |
+| `breakout`  | 08   | Puntuación / Vidas / Nivel  | No           | Port de Arkanoid: spritesheet, sonidos (`M` silencia), ratón + teclado |
+| `snake`     | 09   | Puntuación / Nivel          | No           | Juego nuevo con el atlas de frutas de `05-snake`                       |
 
 `galaga`, `frogger`, `pacman` y `duel` están en `games` pero aún sin módulo. Para añadir un juego usa `/add-game`.
 
