@@ -125,7 +125,6 @@ Reglas del flujo:
 - Hook PostToolUse (`.claude/hooks/format-on-write.ps1`): aplica Prettier (y `eslint --fix` en `.tsx`/`.jsx`) a los `.tsx`, `.jsx` y `.md` que se crean o editan. Los `.ts` no se formatean solos; **no pases Prettier a archivos `.ts` existentes** (genera diffs de formato ajenos al cambio).
 - Capturas de Playwright en `.playwright-screenshots/` (no en `.playwright-mcp/`).
 - Las claves legacy `av_user` y `av_scores` de `localStorage` se eliminan al cargar la app; no las reutilices.
-- Problema conocido: a 375 px el layout global tiene ~77 px de scroll horizontal (panel del menú móvil); no es de ningún juego.
 
 ## Next.js 16
 

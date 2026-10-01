@@ -297,6 +297,12 @@ a {
     display: inline-flex;
   }
 }
+/* A 375 px logo + sesión + hamburguesa no caben con gap de 24 px (desbordaban 28 px) */
+@media (max-width: 480px) {
+  .av-nav {
+    gap: 12px;
+  }
+}
 
 .av-mobile-panel {
   position: fixed;
@@ -812,7 +818,8 @@ a {
 }
 @media (max-width: 900px) {
   .av-detail {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr): el contenido mínimo de la ficha no ensancha la página a 375 px */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .detail-cover {
@@ -876,6 +883,18 @@ a {
   color: var(--cyan);
   margin-top: 6px;
   text-shadow: 0 0 6px rgba(0, 245, 255, 0.5);
+}
+/* A 375 px los valores de 16 px ensanchaban la tercera columna (11 px de scroll) */
+@media (max-width: 480px) {
+  .stat-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .stat-strip > div {
+    padding: 10px;
+  }
+  .stat-strip .v {
+    font-size: 12px;
+  }
 }
 .detail-actions {
   display: flex;
@@ -1614,7 +1633,8 @@ a {
 @media (max-width: 720px) {
   .hall-table .th,
   .hall-table .tr {
-    grid-template-columns: 50px 1fr 90px 90px;
+    /* minmax(0, 1fr): un nombre largo no ensancha la tabla más allá de 375 px */
+    grid-template-columns: 50px minmax(0, 1fr) 90px 90px;
     font-size: 12px;
     padding: 10px 12px;
   }
@@ -1636,6 +1656,148 @@ a {
   }
   .av-player {
     padding: 0 16px 32px;
+  }
+}
+
+/* ===== mando táctil del reproductor (spec 11) ===== */
+/* Solo con puntero coarse; en escritorio .player-stage no altera el layout */
+@media (pointer: coarse) {
+  .av-player {
+    margin: 16px auto;
+    padding: 0 12px 32px;
+  }
+  .player-hud {
+    gap: 10px 14px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .player-stage {
+    touch-action: manipulation;
+  }
+  .player-stage.has-touch {
+    display: grid;
+    gap: 14px;
+    align-items: center;
+  }
+  .player-stage.has-touch .crt {
+    grid-area: screen;
+    padding: 10px;
+    border-radius: 18px;
+  }
+  .touch-pad[data-side="move"] {
+    grid-area: move;
+  }
+  .touch-pad[data-side="actions"] {
+    grid-area: actions;
+  }
+
+  .touch-pad {
+    display: flex;
+    gap: 8px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .touch-pad.actions {
+    flex-direction: column;
+  }
+  .touch-pad.dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-areas:
+      ". up ."
+      "left . right"
+      ". down .";
+    gap: 6px;
+  }
+  .touch-pad.dpad [data-code="ArrowUp"] {
+    grid-area: up;
+  }
+  .touch-pad.dpad [data-code="ArrowLeft"] {
+    grid-area: left;
+  }
+  .touch-pad.dpad [data-code="ArrowRight"] {
+    grid-area: right;
+  }
+  .touch-pad.dpad [data-code="ArrowDown"] {
+    grid-area: down;
+  }
+
+  .touch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    min-height: 56px;
+    padding: 0 12px;
+    font-family: var(--pixel);
+    font-size: 18px;
+    color: var(--ink);
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      box-shadow 80ms ease,
+      border-color 80ms ease,
+      color 80ms ease;
+  }
+  .touch-btn[data-pressed="true"] {
+    color: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow:
+      0 0 12px rgba(0, 245, 255, 0.55),
+      inset 0 0 10px rgba(0, 245, 255, 0.3);
+  }
+  .touch-pad.actions .touch-btn {
+    min-width: 112px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    border-color: rgba(255, 0, 110, 0.45);
+  }
+  .touch-pad.actions .touch-btn[data-pressed="true"] {
+    color: var(--magenta);
+    border-color: var(--magenta);
+    box-shadow:
+      0 0 12px rgba(255, 0, 110, 0.55),
+      inset 0 0 10px rgba(255, 0, 110, 0.3);
+  }
+  /* REINICIAR, más discreto: no es un control de juego */
+  .touch-pad.actions .touch-btn[data-code="Enter"]:not([data-pressed="true"]) {
+    color: var(--ink-dim);
+    border-color: var(--line);
+  }
+}
+
+/* Vertical: canvas arriba, movimiento abajo a la izquierda y acciones a la derecha */
+@media (pointer: coarse) and (orientation: portrait) {
+  .player-stage.has-touch {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "screen screen"
+      "move actions";
+  }
+}
+
+/* Horizontal: mandos a los lados; el canvas se ajusta a la altura de la ventana */
+@media (pointer: coarse) and (orientation: landscape) {
+  .player-stage.has-touch {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "move screen actions";
+    gap: 12px;
+  }
+  .player-stage.has-touch .crt {
+    /* alto del canvas = 100dvh - nav sticky (≤ 90px) - padding del .crt (20px) - margen (12px) */
+    width: min(100%, calc((100dvh - 122px) * 4 / 3 + 20px));
+    justify-self: center;
+  }
+  .player-stage.has-touch .crt-bottom {
+    display: none;
   }
 }
 
@@ -2090,6 +2252,34 @@ a {
 .tk-t {
   color: var(--ink-faint);
   font-size: 11px;
+}
+/* Las 4 columnas fijas del ticker (≈ 410 px) no caben a 375 px: dos filas por entrada */
+@media (max-width: 480px) {
+  .activity-card {
+    min-width: 0;
+    padding: 16px;
+  }
+  .tick-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "p s"
+      "m t";
+    row-gap: 2px;
+  }
+  .tk-p {
+    grid-area: p;
+  }
+  .tk-s {
+    grid-area: s;
+    text-align: right;
+  }
+  .tk-mid {
+    grid-area: m;
+  }
+  .tk-t {
+    grid-area: t;
+    text-align: right;
+  }
 }
 
 .top-list {
