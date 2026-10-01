@@ -1,4 +1,5 @@
-import type { GameCallbacks, GameInstance } from "../types";
+import { DEFAULT_SKIN, isSkinId, type SkinId } from "../skins";
+import type { GameCallbacks, GameInstance, GameOptions } from "../types";
 import {
   BASE_DROP_INTERVAL,
   DROP_STEP_PER_LEVEL,
@@ -18,14 +19,22 @@ import {
   type Piece,
 } from "./logic";
 import { drawOverlay, drawScene } from "./render";
+import { PALETTES } from "./skins";
 
 type State = "playing" | "paused" | "gameover";
 
 const GAME_KEYS = ["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Space"];
 
-export function createTetris(canvas: HTMLCanvasElement, callbacks: GameCallbacks): GameInstance {
+export function createTetris(
+  canvas: HTMLCanvasElement,
+  callbacks: GameCallbacks,
+  options?: GameOptions,
+): GameInstance {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D no disponible");
+
+  // Paleta activa: vive en el closure; setSkin solo la reasigna
+  let pal = PALETTES[isSkinId(options?.skin) ? options.skin : DEFAULT_SKIN];
 
   // ── Estado del juego ────────────────────────────────────────────────────────
   let board: Board = createBoard();
@@ -191,10 +200,10 @@ export function createTetris(canvas: HTMLCanvasElement, callbacks: GameCallbacks
     }
 
     // ctx no es nulo aquí: se comprobó al crear el juego
-    drawScene(ctx!, board, current, next);
-    if (state === "paused") drawOverlay(ctx!, "PAUSA", "#00f5ff");
+    drawScene(ctx!, pal, board, current, next);
+    if (state === "paused") drawOverlay(ctx!, pal, "PAUSA", pal.overlayPause);
     else if (state === "gameover")
-      drawOverlay(ctx!, "GAME OVER", "#ff006e", [
+      drawOverlay(ctx!, pal, "GAME OVER", pal.overlayGameOver, [
         `PUNTUACIÓN: ${score.toLocaleString("es-ES")}`,
         "ENTER PARA REINICIAR",
       ]);
@@ -207,6 +216,10 @@ export function createTetris(canvas: HTMLCanvasElement, callbacks: GameCallbacks
     pause: () => setPaused(true),
     resume: () => setPaused(false),
     getScore: () => score,
+    setSkin(skin: SkinId) {
+      // Solo cambia la paleta: el siguiente frame (también en pausa) ya la usa
+      if (isSkinId(skin)) pal = PALETTES[skin];
+    },
     destroy: () => {
       if (destroyed) return;
       destroyed = true;

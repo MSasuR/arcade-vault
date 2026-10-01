@@ -1,4 +1,5 @@
-import type { GameCallbacks, GameInstance } from "../types";
+import { DEFAULT_SKIN, isSkinId, type SkinId } from "../skins";
+import type { GameCallbacks, GameInstance, GameOptions } from "../types";
 import { createAudio } from "./audio";
 import {
   BALL_SIZE,
@@ -21,6 +22,7 @@ import {
   type BlockColor,
 } from "./constants";
 import { LEVELS } from "./levels";
+import { PALETTES } from "./skins";
 import { createSprites, loadSpritesheet, type Sprites } from "./sprites";
 
 type State = "playing" | "paused" | "gameover" | "win";
@@ -45,11 +47,19 @@ interface Explosion {
 
 const GAME_KEYS = ["ArrowLeft", "ArrowRight"];
 
-export function createBreakout(canvas: HTMLCanvasElement, callbacks: GameCallbacks): GameInstance {
+export function createBreakout(
+  canvas: HTMLCanvasElement,
+  callbacks: GameCallbacks,
+  options?: GameOptions,
+): GameInstance {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D no disponible");
   const c = ctx;
   const audio = createAudio();
+
+  // Skin activo: vive en el closure; setSkin solo reasigna la paleta y la hoja de sprites
+  let skin: SkinId = isSkinId(options?.skin) ? options.skin : DEFAULT_SKIN;
+  let pal = PALETTES[skin];
 
   // ── Estado del juego ────────────────────────────────────────────────────────
   const paddle = { x: (W - PADDLE_W) / 2, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H };
@@ -264,24 +274,32 @@ export function createBreakout(canvas: HTMLCanvasElement, callbacks: GameCallbac
 
   // ── Render ──────────────────────────────────────────────────────────────────
   function drawOverlay(title: string, lines: string[] = []) {
-    c.fillStyle = "rgba(0, 0, 0, 0.6)";
+    c.fillStyle = pal.overlayVeil;
     c.fillRect(0, 0, W, H);
-    c.fillStyle = "#fff";
+    c.save();
+    if (pal.glow.title > 0) {
+      c.shadowBlur = pal.glow.title;
+      c.shadowColor = pal.glowColor.title;
+    }
+    c.fillStyle = pal.overlayTitle;
     c.font = "bold 46px monospace";
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText(title, W / 2, H / 2 - 16);
-    c.fillStyle = "#e6e9ff"; // --ink
+    c.restore();
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillStyle = pal.overlayText;
     c.font = "18px monospace";
     lines.forEach((line, i) => c.fillText(line, W / 2, H / 2 + 28 + i * 28));
   }
 
   function draw() {
-    c.fillStyle = "#000";
+    c.fillStyle = pal.bg;
     c.fillRect(0, 0, W, H);
 
     if (loadFailed) {
-      c.fillStyle = "#ff006e"; // --magenta
+      c.fillStyle = pal.error;
       c.font = "bold 18px monospace";
       c.textAlign = "center";
       c.textBaseline = "middle";
@@ -294,11 +312,24 @@ export function createBreakout(canvas: HTMLCanvasElement, callbacks: GameCallbac
       if (block.alive) sprites.drawBlock(block.color, block.x, block.y, block.w, block.h);
     for (const exp of explosions)
       sprites.drawExplosion(exp.color, exp.elapsed, exp.x, exp.y, exp.w, exp.h);
-    sprites.drawPaddle(paddle.x, paddle.y, paddle.w, paddle.h);
-    sprites.drawBall(ball.x, ball.y, ball.w, ball.h);
+    // Glow solo en paleta y pelota (elementos clave), dentro de save/restore
+    if (pal.glow.paddle > 0) {
+      c.save();
+      c.shadowBlur = pal.glow.paddle;
+      c.shadowColor = pal.glowColor.paddle;
+      sprites.drawPaddle(paddle.x, paddle.y, paddle.w, paddle.h);
+      c.restore();
+    } else sprites.drawPaddle(paddle.x, paddle.y, paddle.w, paddle.h);
+    if (pal.glow.ball > 0) {
+      c.save();
+      c.shadowBlur = pal.glow.ball;
+      c.shadowColor = pal.glowColor.ball;
+      sprites.drawBall(ball.x, ball.y, ball.w, ball.h);
+      c.restore();
+    } else sprites.drawBall(ball.x, ball.y, ball.w, ball.h);
 
     if (audio.isMuted()) {
-      c.fillStyle = "#8a8fb5"; // --ink-dim
+      c.fillStyle = pal.muted;
       c.font = "bold 14px monospace";
       c.textAlign = "right";
       c.textBaseline = "top";
@@ -336,6 +367,7 @@ export function createBreakout(canvas: HTMLCanvasElement, callbacks: GameCallbac
     (img) => {
       if (destroyed) return;
       sprites = createSprites(c, img);
+      sprites.useTints(skin, pal.sprites);
       lastTime = null;
       rafId = requestAnimationFrame(frame);
     },
@@ -351,6 +383,15 @@ export function createBreakout(canvas: HTMLCanvasElement, callbacks: GameCallbac
     pause: () => setPaused(true),
     resume: () => setPaused(false),
     getScore: () => score,
+    setSkin(next: SkinId) {
+      // Solo cambia paleta y sprites: el siguiente frame (también en pausa) ya los usa
+      if (!isSkinId(next)) return;
+      skin = next;
+      pal = PALETTES[next];
+      sprites?.useTints(skin, pal.sprites);
+      // Con el spritesheet roto no hay loop: se repinta el aviso con la paleta nueva
+      if (loadFailed) draw();
+    },
     destroy: () => {
       if (destroyed) return;
       destroyed = true;

@@ -26,20 +26,7 @@ export const LINES_PER_LEVEL = 10;
 // Wall kicks probados al rotar, en este orden
 export const KICKS = [0, -1, 1, -2, 2];
 
-// Paleta neón de la plataforma, indexada por tipo de pieza (1–8).
-// Hex fijos: el canvas no lee variables CSS. I, O, S, Z, L y N coinciden con
-// --cyan, --yellow, --green, --magenta, --bronze y --silver de globals.css.
-export const COLORS: (string | null)[] = [
-  null,
-  "#00f5ff", // I
-  "#f5ff00", // O
-  "#b14dff", // T (derivado neón)
-  "#00ff88", // S
-  "#ff006e", // Z
-  "#4d7cff", // J (derivado neón)
-  "#d97a3a", // L
-  "#c7d0e0", // N (tuerca)
-];
+// Los colores de cada pieza (por tipo, 1–8) viven en skins.ts.
 
 export const PIECES: (number[][] | null)[] = [
   null,
