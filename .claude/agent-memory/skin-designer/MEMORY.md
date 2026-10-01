@@ -1,3 +1,3 @@
 - [Scanlines CSS del CRT](crt-scanlines-css.md) — .crt-screen::after ya oscurece filas (×0.82); medir con ello y no duplicar scanlines en retro
 - [Verificación de skins en Playwright](playwright-skin-checks.md) — classic instrumentando el ctx, capturas por juego, build rompe el dev server
-- [Tintado de sprites y retro distinguible](sprite-tint-and-retro-distinction.md) — spriteTint por luminancia, tono+textura en retro, bodyMid neon en Snake
+- [Tintado de sprites y retro distinguible](sprite-tint-and-retro-distinction.md) — spriteTint por luminancia, tono+textura en retro, bodyMid neon en Snake, texturas y contorno en Frogger

@@ -1,6 +1,6 @@
 # Juego Frogger en la Plataforma
 
-**State:** Draft  
+**State:** Implemented  
 **Depends on:** SPEC 04 (Supabase Auth, hook `useUser()`), SPEC 05 (módulo Asteroids, registro `PLAYABLE` y `GamePlayer`), SPEC 06 (tablas `games`/`scores` y ranking), SPEC 07 (contrato común `app/components/games/types.ts` y HUD dinámico de `GamePlayer`), SPEC 09 (patrón de estado `ready` y controles con flechas y `W` `A` `S` `D`)  
 **Date:** 2026-09-30  
 **Objective:** Crear el juego Frogger como módulo TypeScript vectorial montable en canvas y conectarlo a `GamePlayer` (HUD, pausa, fin de partida, puntuación y leaderboard) en la ruta `/player/frogger`.

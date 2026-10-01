@@ -1,5 +1,6 @@
 import { createAsteroids } from "./asteroids";
 import { createBreakout } from "./breakout";
+import { createFrogger } from "./frogger";
 import { createSnake } from "./snake";
 import { createTetris } from "./tetris";
 import type { TouchButton, TouchLayout } from "./touch";
@@ -10,6 +11,7 @@ export const PLAYABLE: Record<string, GameFactory> = {
   tetris: createTetris,
   breakout: createBreakout,
   snake: createSnake,
+  frogger: createFrogger,
 };
 
 // Juegos con skins del canvas (spec 10): solo en ellos GamePlayer muestra el selector
@@ -18,6 +20,7 @@ export const SKINNABLE: ReadonlySet<string> = new Set<string>([
   "tetris",
   "breakout",
   "snake",
+  "frogger",
 ]);
 
 // Mando táctil por juego (spec 11): mapeo 1:1 con las teclas que ya usa cada uno
@@ -61,6 +64,13 @@ export const TOUCH_LAYOUTS: Readonly<Record<string, TouchLayout>> = {
     restart: RESTART,
   },
   snake: {
+    move: [UP, LEFT, RIGHT, DOWN],
+    moveShape: "dpad",
+    actions: [],
+    restart: RESTART,
+  },
+  frogger: {
+    // Un salto por keydown e ignora e.repeat: sin repeat, un toque = un salto
     move: [UP, LEFT, RIGHT, DOWN],
     moveShape: "dpad",
     actions: [],

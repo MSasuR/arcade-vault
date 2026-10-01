@@ -91,7 +91,7 @@ Título `# Catálogo y Portada de <Nombre>`. Misma estructura de secciones.
 1. Juego elegido: id, título, categoría y mecánica en una frase; por qué encaja con el tema.
 2. Rutas de los dos archivos creados.
 3. Decisiones más relevantes que tomaste sin preguntar (3–5 líneas) para que el usuario sepa qué revisar.
-4. Recordatorio: ambas specs están en `Draft`; el usuario las revisa y cambia el estado. Para implementarlas conviene moverlas/renumerarlas a `specs/NN-slug.md` y ejecutar `/spec-impl NN-slug`.
+4. Recordatorio: ambas specs están en `Draft`; el usuario las revisa y cambia el estado. Para implementarlas conviene moverlas/renumerarlas a `specs/NN-slug.md` y ejecutar `/spec-impl-game NN-<id>-game` para la del juego (que después lanza `skin-designer` y `mobile-porter`) y `/spec-impl NN-<id>-catalog` para la del catálogo.
 
 ## Reglas duras
 

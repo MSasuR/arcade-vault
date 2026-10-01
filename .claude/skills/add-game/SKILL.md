@@ -103,7 +103,7 @@ Con toda la información, **escribe la spec completa y guárdala directamente**,
 6. Confirma al usuario:
    - la ruta del archivo creado;
    - que la spec está en `Draft` y debe pasarla a `Approved` él mismo tras leerla;
-   - el siguiente paso: `/spec-impl NN-slug`;
+   - el siguiente paso: `/spec-impl-game NN-slug` (implementa la spec y después lanza en secuencia `skin-designer` y `mobile-porter`);
    - **y detente.** No propongas implementar ni escribas código.
 
 ## Reglas duras
