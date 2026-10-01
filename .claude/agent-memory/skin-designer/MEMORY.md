@@ -1,0 +1,1 @@
+- [Scanlines CSS del CRT](crt-scanlines-css.md) — .crt-screen::after ya oscurece filas (×0.82); medir con ello y no duplicar scanlines en retro

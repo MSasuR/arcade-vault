@@ -57,6 +57,15 @@ Reglas del flujo:
 - `specs/game-jam/` es la única excepción a la numeración `NN-slug` de `specs/`.
 - Decide sin preguntar (justifica en `Decisions Taken and Discarded`); solo escribe en `specs/game-jam/` y nunca sobrescribe.
 
+| Agente          | Uso                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `skin-designer` | Audita e implementa los 3 skins del canvas de cada juego (`classic` por defecto, `neon`, `retro`) y que todos se vean bien en oscuro |
+
+- Flujo: `skin-designer` audita (matriz juego × skin) → sin spec aprobada escribe `specs/NN-game-skins.md` en `Draft` y se detiene → el usuario aprueba → `skin-designer` implementa (o `/spec-impl NN-game-skins`).
+- Con la spec base ya implementada, añade los skins de juegos nuevos sin spec propia (mismo contrato) y lo reporta.
+- Checklist de modo oscuro medida con contraste WCAG (texto ≥ 4.5:1, elementos de juego ≥ 3:1); capturas en `.playwright-screenshots/skins/`.
+- Skin persistido en `localStorage` (`av_skin`); solo cambia el canvas, no la UI global. Memoria propia en `.claude/agent-memory/skin-designer/`. No hace commits.
+
 ## Arquitectura
 
 ### Rutas (`app/`)
