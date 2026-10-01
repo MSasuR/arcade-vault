@@ -6,7 +6,9 @@ import {
   Ship,
   type Keys,
 } from "./entities";
-import type { GameCallbacks, GameInstance } from "../types";
+import type { GameCallbacks, GameInstance, GameOptions } from "../types";
+import { DEFAULT_SKIN, isSkinId, type SkinId } from "../skins";
+import { PALETTES } from "./skins";
 import {
   H,
   POINTS,
@@ -24,9 +26,14 @@ const GAME_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "Space"];
 export function createAsteroids(
   canvas: HTMLCanvasElement,
   callbacks: GameCallbacks,
+  options?: GameOptions,
 ): GameInstance {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D no disponible");
+
+  // Paleta activa (spec 10): vive en el closure; setSkin solo la reasigna
+  const initialSkin: SkinId = isSkinId(options?.skin) ? options.skin : DEFAULT_SKIN;
+  let pal = PALETTES[initialSkin];
 
   // ── Input ───────────────────────────────────────────────────────────────────
   const keys: Keys = {};
@@ -255,30 +262,40 @@ export function createAsteroids(
     c.font = "15px monospace";
     c.textAlign = "left";
     c.textBaseline = "alphabetic";
-    c.fillStyle = "#0ff";
+    c.fillStyle = pal.timer;
     c.fillText(`3x  ${ship.tripleShot.toFixed(1)}s`, 14, 26);
   }
 
   function drawOverlay(c: CanvasRenderingContext2D, title: string, sub: string) {
+    if (pal.overlayVeil) {
+      c.fillStyle = pal.overlayVeil;
+      c.fillRect(0, 0, W, H);
+    }
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
-    c.fillStyle = "#fff";
+    c.save();
+    if (pal.glow.title > 0) {
+      c.shadowBlur = pal.glow.title;
+      c.shadowColor = pal.overlayTitleGlow;
+    }
+    c.fillStyle = pal.overlayTitle;
     c.font = "bold 46px monospace";
     c.fillText(title, W / 2, H / 2 - 18);
+    c.restore();
     c.font = "18px monospace";
-    c.fillStyle = "rgba(255,255,255,0.65)";
+    c.fillStyle = pal.overlaySub;
     c.fillText(sub, W / 2, H / 2 + 22);
   }
 
   function draw(c: CanvasRenderingContext2D) {
-    c.fillStyle = "#000";
+    c.fillStyle = pal.bg;
     c.fillRect(0, 0, W, H);
 
-    particles.forEach((p) => p.draw(c));
-    asteroids.forEach((a) => a.draw(c));
-    powerUps.forEach((p) => p.draw(c));
-    bullets.forEach((b) => b.draw(c));
-    ship.draw(c);
+    particles.forEach((p) => p.draw(c, pal));
+    asteroids.forEach((a) => a.draw(c, pal));
+    powerUps.forEach((p) => p.draw(c, pal));
+    bullets.forEach((b) => b.draw(c, pal));
+    ship.draw(c, pal);
 
     drawPowerUpTimer(c);
 
@@ -311,6 +328,10 @@ export function createAsteroids(
     pause: () => setPaused(true),
     resume: () => setPaused(false),
     getScore: () => score,
+    setSkin(skin: SkinId) {
+      // Solo cambia la paleta: el siguiente frame (también en pausa) ya la usa
+      if (isSkinId(skin)) pal = PALETTES[skin];
+    },
     destroy() {
       if (destroyed) return;
       destroyed = true;

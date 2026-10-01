@@ -1,13 +1,7 @@
-import type { GameCallbacks, GameInstance } from "../types";
+import { DEFAULT_SKIN, isSkinId, type SkinId } from "../skins";
+import type { GameCallbacks, GameInstance, GameOptions } from "../types";
 import { FRUITS_SRC, type FruitName } from "./atlas";
-import {
-  CELL,
-  COLOR_DANGER,
-  COLOR_HEAD,
-  COLOR_TEXT,
-  FRUIT_DRAW_HEIGHT,
-  POINTS_PER_FRUIT,
-} from "./constants";
+import { CELL, FRUIT_DRAW_HEIGHT, POINTS_PER_FRUIT } from "./constants";
 import {
   START_DIR,
   createInitialSnake,
@@ -30,6 +24,7 @@ import {
   drawReadyHint,
   drawSnake,
 } from "./render";
+import { PALETTES } from "./skins";
 import { createFruitSprites, loadImage, type FruitSprites } from "./sprites";
 
 type State = "ready" | "playing" | "paused" | "gameover" | "win";
@@ -39,10 +34,18 @@ interface Fruit {
   name: FruitName;
 }
 
-export function createSnake(canvas: HTMLCanvasElement, callbacks: GameCallbacks): GameInstance {
+export function createSnake(
+  canvas: HTMLCanvasElement,
+  callbacks: GameCallbacks,
+  options?: GameOptions,
+): GameInstance {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D no disponible");
   const c = ctx;
+
+  // Skin activo: vive en el closure; setSkin solo reasigna la paleta y el atlas de frutas
+  let skin: SkinId = isSkinId(options?.skin) ? options.skin : DEFAULT_SKIN;
+  let pal = PALETTES[skin];
 
   // ── Estado del juego ────────────────────────────────────────────────────────
   let snake: Cell[] = createInitialSnake();
@@ -197,29 +200,40 @@ export function createSnake(canvas: HTMLCanvasElement, callbacks: GameCallbacks)
   // ── Render ──────────────────────────────────────────────────────────────────
   function draw() {
     if (loadFailed) {
-      drawLoadError(c);
+      drawLoadError(c, pal);
       return;
     }
     if (!sprites) return;
 
-    drawBackground(c);
-    drawGrid(c);
-    if (fruit)
+    drawBackground(c, pal);
+    drawGrid(c, pal);
+    if (fruit) {
+      // Glow de la fruta (neon) dentro de save/restore
+      c.save();
+      if (pal.glow.fruit > 0) {
+        c.shadowBlur = pal.glow.fruit;
+        c.shadowColor = pal.glowColor.fruit;
+      }
       sprites.drawFruit(
         fruit.name,
         fruit.cell.x * CELL + CELL / 2,
         fruit.cell.y * CELL + CELL / 2,
         FRUIT_DRAW_HEIGHT,
       );
-    drawSnake(c, snake, dir);
+      c.restore();
+    }
+    drawSnake(c, pal, snake, dir);
 
     const finalScore = `PUNTUACIÓN: ${score.toLocaleString("es-ES")}`;
-    if (state === "ready") drawReadyHint(c);
-    else if (state === "paused") drawOverlay(c, "PAUSA", COLOR_HEAD);
+    if (state === "ready") drawReadyHint(c, pal);
+    else if (state === "paused") drawOverlay(c, pal, "PAUSA", pal.overlayPause);
     else if (state === "gameover")
-      drawOverlay(c, "GAME OVER", COLOR_DANGER, [finalScore, "ENTER PARA REINICIAR"]);
+      drawOverlay(c, pal, "GAME OVER", pal.overlayGameOver, [finalScore, "ENTER PARA REINICIAR"]);
     else if (state === "win")
-      drawOverlay(c, "¡TABLERO COMPLETO!", COLOR_TEXT, [finalScore, "ENTER PARA REINICIAR"]);
+      drawOverlay(c, pal, "¡TABLERO COMPLETO!", pal.overlayWin, [
+        finalScore,
+        "ENTER PARA REINICIAR",
+      ]);
   }
 
   // ── Loop ────────────────────────────────────────────────────────────────────
@@ -240,6 +254,7 @@ export function createSnake(canvas: HTMLCanvasElement, callbacks: GameCallbacks)
     (img) => {
       if (destroyed) return;
       sprites = createFruitSprites(c, img);
+      sprites.useTint(skin, pal.fruitTint);
       lastTime = null;
       rafId = requestAnimationFrame(frame);
     },
@@ -255,6 +270,15 @@ export function createSnake(canvas: HTMLCanvasElement, callbacks: GameCallbacks)
     pause: () => setPaused(true),
     resume: () => setPaused(false),
     getScore: () => score,
+    setSkin(next: SkinId) {
+      // Solo cambia paleta y atlas: el siguiente frame (también en pausa) ya los usa
+      if (!isSkinId(next)) return;
+      skin = next;
+      pal = PALETTES[next];
+      sprites?.useTint(skin, pal.fruitTint);
+      // Con el atlas roto no hay loop: se repinta el aviso con la paleta nueva
+      if (loadFailed) draw();
+    },
     destroy: () => {
       if (destroyed) return;
       destroyed = true;

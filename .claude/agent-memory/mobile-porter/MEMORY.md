@@ -1,0 +1,2 @@
+- [Verificación táctil con Playwright y CDP](playwright-touch-checks.md) — soltar un dedo con touchEnd de un solo punto, contador de teclas, GAME OVER de Tetris, build vs dev server
+- [Trampas de layout móvil](mobile-layout-pitfalls.md) — isMobile falsea innerWidth, causas reales del desborde a 375 px, minmax(0, 1fr), nav sticky de 66/89,5 px en horizontal

@@ -103,6 +103,19 @@ La serpiente espera la primera flecha para empezar, no puede darse la vuelta de 
 
 Atribución: según el comentario de `sprites.js`, las imágenes de las frutas provienen de [The Spriters Resource (Google Snake)](https://www.spriters-resource.com/browser_games/googlesnakegame/). Son gráficos de terceros: revisa el uso permitido antes de publicar el proyecto.
 
+### Frogger
+
+| Tecla           | Acción                     |
+| --------------- | -------------------------- |
+| `←` `↑` `→` `↓` | Saltar una casilla         |
+| `W` `A` `S` `D` | Saltar una casilla         |
+| `P` / `Escape`  | Pausar / reanudar          |
+| `Enter`         | Reiniciar tras `GAME OVER` |
+
+Cruza la carretera (5 carriles de coches, un deportivo y camiones) y el río (troncos y tortugas) hasta las 5 casillas de la orilla. La rana salta una casilla por pulsación (mantener la tecla no repite) y espera la primera flecha para empezar. Cada rana tiene 30 s (barra de tiempo en el canvas). En el río la rana viaja con su tronco o tortuga: caer al agua, salir arrastrada por un borde, quedarse sobre una tortuga que se sumerge, chocar con un vehículo, caer en el seto o en una casilla ocupada, o agotar el tiempo cuesta una vida.
+
+Puntuación: 10 por cada fila nueva alcanzada, 50 por rana a salvo más `10 × segundos restantes`, 200 extra por la mosca y 1000 por completar las 5 casillas, que sube el nivel (velocidad ×1.15 por nivel, hasta ×2). Empiezas con 3 vidas y ganas una más al llegar a 10 000 puntos; no hay victoria, la partida termina con `GAME OVER`. El HUD muestra Puntuación, Vidas y Nivel. Frogger está registrado en `PLAYABLE` con el id `frogger`, cuya fila ya existía en `public.games`, así que no necesitó migración. Es vectorial, sin assets ni sonido.
+
 ### Contrato común de los juegos
 
 Todos los módulos usan `GameCallbacks` y `GameInstance` de `app/components/games/types.ts`. `onScore` y `onGameOver` son obligatorios; `onLives`, `onLevel`, `onLines` y `onPause` son opcionales y el HUD de `GamePlayer` solo muestra las métricas que el juego emite.

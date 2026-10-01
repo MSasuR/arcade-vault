@@ -1,3 +1,5 @@
+import type { SkinId } from "./skins";
+
 export interface GameCallbacks {
   onScore: (score: number) => void;
   onGameOver: (finalScore: number) => void;
@@ -13,6 +15,17 @@ export interface GameInstance {
   resume: () => void;
   getScore: () => number;
   destroy: () => void;
+  // Opcional mientras haya juegos sin skins; cambia la paleta en caliente,
+  // sin reiniciar la partida ni emitir callbacks
+  setSkin?: (skin: SkinId) => void;
 }
 
-export type GameFactory = (canvas: HTMLCanvasElement, callbacks: GameCallbacks) => GameInstance;
+export interface GameOptions {
+  skin?: SkinId;
+}
+
+export type GameFactory = (
+  canvas: HTMLCanvasElement,
+  callbacks: GameCallbacks,
+  options?: GameOptions,
+) => GameInstance;

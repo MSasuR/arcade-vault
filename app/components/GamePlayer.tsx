@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import type { Game } from "../data";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "./useUser";
-import { PLAYABLE } from "./games/registry";
+import { PLAYABLE, SKINNABLE, TOUCH_LAYOUTS } from "./games/registry";
+import { SKINS } from "./games/skins";
 import type { GameInstance } from "./games/types";
+import TouchPad from "./TouchPad";
+import { useCoarsePointer } from "./useCoarsePointer";
+import { useSkin } from "./useSkin";
 
 export default function GamePlayer({ game }: { game: Game | null }) {
   const router = useRouter();
@@ -14,6 +18,13 @@ export default function GamePlayer({ game }: { game: Game | null }) {
   const [supabase] = useState(() => createClient());
   const id = game?.id ?? "";
   const factory = game ? PLAYABLE[game.id] : undefined;
+  const skinnable = !!factory && SKINNABLE.has(id);
+  const [skin, setSkin] = useSkin();
+  // El juego se crea con el skin vigente sin depender de él (cambiarlo no recrea la partida)
+  const skinRef = useRef(skin);
+  // Mando táctil (spec 11): solo con puntero coarse y en juegos jugables con layout
+  const coarse = useCoarsePointer();
+  const touchLayout = coarse && factory ? TOUCH_LAYOUTS[id] : undefined;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<GameInstance | null>(null);
@@ -29,6 +40,12 @@ export default function GamePlayer({ game }: { game: Game | null }) {
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+
+  // Cambio de skin en caliente: solo repinta, no reinicia ni emite callbacks
+  useEffect(() => {
+    skinRef.current = skin;
+    gameRef.current?.setSkin?.(skin);
+  }, [skin]);
 
   // Inserta la marca en `scores` (user_id lo rellena auth.uid()). Si falla, savedRef
   // vuelve a false para que TERMINAR reintente; el juego no se interrumpe.
@@ -49,23 +66,27 @@ export default function GamePlayer({ game }: { game: Game | null }) {
     if (!canvas || !factory) return;
     const gameId = id;
     savedRef.current = false;
-    const instance = factory(canvas, {
-      onScore: setScore,
-      onLives: setLives,
-      onLines: setLines,
-      onLevel: (l) => {
-        setLevel(l);
-        // Reinicio tras GAME OVER: el nivel vuelve a 1 y se permite guardar de nuevo
-        if (l === 1) savedRef.current = false;
+    const instance = factory(
+      canvas,
+      {
+        onScore: setScore,
+        onLives: setLives,
+        onLines: setLines,
+        onLevel: (l) => {
+          setLevel(l);
+          // Reinicio tras GAME OVER: el nivel vuelve a 1 y se permite guardar de nuevo
+          if (l === 1) savedRef.current = false;
+        },
+        onGameOver: (finalScore) => {
+          // Si TERMINAR ya está guardando esta partida, el fin de partida no la guarda otra vez
+          if (savedRef.current) return;
+          savedRef.current = true;
+          void saveScore(gameId, finalScore);
+        },
+        onPause: setPaused,
       },
-      onGameOver: (finalScore) => {
-        // Si TERMINAR ya está guardando esta partida, el fin de partida no la guarda otra vez
-        if (savedRef.current) return;
-        savedRef.current = true;
-        void saveScore(gameId, finalScore);
-      },
-      onPause: setPaused,
-    });
+      { skin: skinRef.current },
+    );
     gameRef.current = instance;
     return () => {
       instance.destroy();
@@ -118,6 +139,31 @@ export default function GamePlayer({ game }: { game: Game | null }) {
             <div className="v">{factory ? level : 1}</div>
           </div>
         )}
+        {skinnable && (
+          <div className="hud-stat skin-picker">
+            <div className="l" id="skin-picker-label">
+              Skin
+            </div>
+            <div className="skin-opts" role="group" aria-labelledby="skin-picker-label">
+              {SKINS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className="btn ghost skin-opt"
+                  data-skin={s.id}
+                  aria-pressed={skin === s.id}
+                  onClick={(e) => {
+                    // Sin foco en el botón: Espacio y flechas siguen yendo al juego
+                    e.currentTarget.blur();
+                    setSkin(s.id);
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="hud-actions">
           <button className="btn ghost" onClick={handlePause} disabled={!factory}>
             {paused ? "REANUDAR" : "PAUSAR"}
@@ -128,28 +174,44 @@ export default function GamePlayer({ game }: { game: Game | null }) {
         </div>
       </div>
 
-      <div className="crt">
-        <div className="crt::before"></div>
-        <div className="crt-screen">
-          {factory ? (
-            <canvas ref={canvasRef} className="game-canvas" width={800} height={600} />
-          ) : (
-            <>
-              <div className="game-arena">
-                <div className="grid-floor"></div>
-                <div className="player-ship"></div>
-                <div className="enemy e1"></div>
-                <div className="enemy e2"></div>
-                <div className="enemy e3"></div>
-              </div>
-              <div className="crt-content">JUEGO AQUÍ</div>
-            </>
-          )}
+      <div className={touchLayout ? "player-stage has-touch" : "player-stage"}>
+        {touchLayout && (
+          <TouchPad buttons={touchLayout.move} shape={touchLayout.moveShape} side="move" />
+        )}
+        <div className="crt">
+          <div className="crt::before"></div>
+          <div className="crt-screen">
+            {factory ? (
+              <canvas ref={canvasRef} className="game-canvas" width={800} height={600} />
+            ) : (
+              <>
+                <div className="game-arena">
+                  <div className="grid-floor"></div>
+                  <div className="player-ship"></div>
+                  <div className="enemy e1"></div>
+                  <div className="enemy e2"></div>
+                  <div className="enemy e3"></div>
+                </div>
+                <div className="crt-content">JUEGO AQUÍ</div>
+              </>
+            )}
+          </div>
+          <div className="crt-bottom">
+            <div>ARCADE VAULT</div>
+            <div className="led">ACTIVO</div>
+          </div>
         </div>
-        <div className="crt-bottom">
-          <div>ARCADE VAULT</div>
-          <div className="led">ACTIVO</div>
-        </div>
+        {touchLayout && (
+          <TouchPad
+            buttons={
+              touchLayout.restart
+                ? [...touchLayout.actions, touchLayout.restart]
+                : touchLayout.actions
+            }
+            shape="actions"
+            side="actions"
+          />
+        )}
       </div>
 
       <div style={{ textAlign: "center", marginTop: 32 }}>
